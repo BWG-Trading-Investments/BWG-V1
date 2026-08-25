@@ -1,0 +1,6 @@
+// Everything here emits CSS. Included exactly once, from styles.scss, and only
+// after `tokens` — every rule below reads the custom properties it declares.
+@forward 'reset';
+@forward 'typography';
+@forward 'a11y';
+@forward 'motion';

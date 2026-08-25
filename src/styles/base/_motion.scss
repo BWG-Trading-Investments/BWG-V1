@@ -1,0 +1,18 @@
+@use '../abstracts' as *;
+
+// A single global honouring of prefers-reduced-motion.
+//
+// The current site does this in JS with one early `if (reduce) return;` that
+// disables parallax, tilt AND the cursor together. Here the CSS layer stands on
+// its own, and the JS layer reads the same signal through MotionService, so the
+// two can never disagree.
+@include motion-reduce {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

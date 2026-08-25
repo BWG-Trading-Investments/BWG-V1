@@ -1,0 +1,61 @@
+@use 'sass:map';
+
+// The breakpoints this build actually needs, named after the widths the brief
+// requires the site to be tested at: 360, 768, 1024, 1440, 1920.
+//
+// Two of these carry real behaviour and are not arbitrary:
+//   md (768px)  — below it the hero skips WebGL and renders the SVG globe.
+//   lg (1024px) — below it the navbar collapses to the hamburger panel.
+$breakpoints: (
+  'xs': 360px,
+  'sm': 560px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1440px,
+  'xxl': 1920px,
+) !default;
+
+@function bp($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error 'Unknown breakpoint `#{$name}`. Valid names: #{map.keys($breakpoints)}.';
+  }
+  @return map.get($breakpoints, $name);
+}
+
+/// Mobile-first: applies at or above the named width.
+/// `up('lg')` is the desktop navbar — it starts exactly at 1024px.
+@mixin up($name) {
+  @media (min-width: bp($name)) {
+    @content;
+  }
+}
+
+/// Desktop-first: applies strictly below the named width.
+/// `down('lg')` is the hamburger — it ends exactly at 1023.98px, so the two
+/// never overlap and neither leaves a one-pixel gap.
+@mixin down($name) {
+  @media (max-width: bp($name) - 0.02px) {
+    @content;
+  }
+}
+
+@mixin between($min, $max) {
+  @media (min-width: bp($min)) and (max-width: bp($max) - 0.02px) {
+    @content;
+  }
+}
+
+/// Coarse pointers — used to disable hover-only affordances such as the logo
+/// tilt and the globe's cursor parallax.
+@mixin touch {
+  @media (hover: none), (pointer: coarse) {
+    @content;
+  }
+}
+
+/// Fine pointers with real hover.
+@mixin fine-pointer {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}

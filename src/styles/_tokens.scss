@@ -1,0 +1,275 @@
+// =============================================================================
+// BWG DESIGN TOKENS
+//
+// The single source of every colour, font, size, spacing step and timing in the
+// build. Components never hard-code a hex value, a duration or an easing curve —
+// they read from here.
+//
+// This file EMITS CSS (a `:root` block), so it is included exactly once, from
+// styles.scss. Component stylesheets must never `@use` it; they just read the
+// custom properties, which are global by definition.
+//
+// Everything is prefixed `--bwg-` so a token is always recognisable as ours and
+// can never collide with a third-party stylesheet.
+// =============================================================================
+
+:root {
+  // ---------------------------------------------------------------------------
+  // Surfaces — obsidian black. The page is dark; gold is the only colour on it.
+  // ---------------------------------------------------------------------------
+  --bwg-ink: #07080b; // page background
+  --bwg-navy: #0c1119; // navbar solid state
+  --bwg-navy-soft: #131a25; // panels, cards
+
+  // ---------------------------------------------------------------------------
+  // Champagne gold — the single accent. Used sparingly and deliberately.
+  // ---------------------------------------------------------------------------
+  --bwg-gold: #c9a15b; // the accent
+  --bwg-gold-bright: #e8c87e; // hover / highlight
+  --bwg-gold-deep: #8a6a32; // hairlines, borders
+
+  // ---------------------------------------------------------------------------
+  // Type colour — warm white, never pure #fff.
+  // ---------------------------------------------------------------------------
+  --bwg-text: #f4f2ed;
+  --bwg-text-muted: #9aa1ac;
+
+  // ---------------------------------------------------------------------------
+  // Channel triplets.
+  //
+  // Space-separated so any of the above can be used at partial alpha without a
+  // component ever restating the hex: rgb(var(--bwg-gold-rgb) / 20%).
+  // ---------------------------------------------------------------------------
+  --bwg-ink-rgb: 7 8 11;
+  --bwg-navy-rgb: 12 17 25;
+  --bwg-gold-rgb: 201 161 91;
+  --bwg-text-rgb: 244 242 237;
+
+  // ---------------------------------------------------------------------------
+  // Derived surfaces and rules
+  // ---------------------------------------------------------------------------
+
+  // The navbar's scrolled state, exactly as specified: rgba(12,17,25,0.78).
+  --bwg-glass: rgb(var(--bwg-navy-rgb) / 78%);
+  --bwg-glass-blur: 16px;
+  --bwg-glass-saturate: 150%;
+
+  // Thin gold rules. --rule is the hairline under the navbar and between blocks;
+  // --rule-strong is a deliberate, visible edge.
+  --bwg-rule: rgb(var(--bwg-gold-rgb) / 22%);
+  --bwg-rule-strong: rgb(var(--bwg-gold-rgb) / 48%);
+
+  // Neutral hairline, for structure that should not read as gold.
+  --bwg-hairline: rgb(var(--bwg-text-rgb) / 8%);
+
+  // The hero's radial glow behind the globe. Tight and dark — it sits behind the
+  // globe's disc rather than washing the section, which is what lets the
+  // atmosphere rim read as the brightest thing on the page.
+  --bwg-glow: rgb(var(--bwg-gold-rgb) / 14%); // the wide, dim falloff
+  --bwg-glow-core: rgb(var(--bwg-gold-rgb) / 27%); // the tight core behind the disc
+
+  // ---------------------------------------------------------------------------
+  // Globe
+  //
+  // The WebGL globe reads these at runtime through getComputedStyle, so the
+  // canvas and the SVG fallback are coloured from one place and cannot drift
+  // apart. Both globes use every value below.
+  // ---------------------------------------------------------------------------
+  --bwg-globe-body: #12151c; // the solid planet mass, lit by the key light
+  --bwg-globe-body-lit: #262b36; // the body where the key light strikes it
+  --bwg-globe-light: #ffd9a0; // warm gold key light, front-lower-left
+  --bwg-globe-ambient: #2a3140; // low fill, so the dark side is not pure black
+  --bwg-globe-haze: #c9a15b; // the wide outer haze shell
+  --bwg-globe-land: #d0a862; // continents at rest
+  --bwg-globe-city: #f0d494; // the brighter ~8% picked out as city lights
+  --bwg-globe-atmosphere: #c9a15b; // fresnel rim
+  --bwg-globe-arc: #d9b877; // network arcs
+  --bwg-globe-node: #f4e2b8; // arc endpoints and travelling pulses
+
+  // ---------------------------------------------------------------------------
+  // Typography — two families, nothing else.
+  //
+  // Montserrat carries the display voice at 600/800; Inter carries all UI and
+  // body text at 400/500. Both are loaded in index.html.
+  // ---------------------------------------------------------------------------
+  // A heavy geometric sans, not a serif: the hero reference sets BUSINESS. /
+  // CONNECTED. in a wide geometric grotesque, and a Garamond cannot carry it.
+  --bwg-font-display: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+  --bwg-font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --bwg-fw-display: 600;
+  --bwg-fw-display-strong: 800;
+  --bwg-fw-ui: 400;
+  --bwg-fw-ui-medium: 500;
+
+  // Scale. Every step below carries a uniform 0.88 factor against the original
+  // set, so the intervals between them are unchanged and nothing needs resizing
+  // in a component stylesheet. This is the only place a font size is declared.
+  --bwg-fs-xs: 0.605rem; // 9.7px — capability sublines, nav numerals
+  --bwg-fs-sm: 0.715rem; // 11.4px — eyebrows, small-caps labels
+  --bwg-fs-base: 0.88rem; // 14.1px — UI default
+  --bwg-fs-md: 0.935rem; // 15px — body paragraphs
+  --bwg-fs-lg: clamp(0.99rem, 0.264vw + 0.924rem, 1.155rem);
+  --bwg-fs-xl: clamp(1.21rem, 0.616vw + 1.056rem, 1.54rem);
+  --bwg-fs-2xl: clamp(1.54rem, 1.232vw + 1.232rem, 2.2rem);
+  --bwg-fs-3xl: clamp(1.98rem, 2.288vw + 1.408rem, 3.08rem);
+
+  // BUSINESS. / CONNECTED.
+  //
+  // This step takes a deeper cut than 0.88 because it is bound by geometry, not
+  // by taste. Montserrat's uppercase is considerably wider than the Garamond it
+  // replaced: "CONNECTED." measures 6.72em in its advances, or 6.45em once the
+  // -0.03em tracking is applied across its nine gaps. It has to clear the copy
+  // column at every width without wrapping or clipping.
+  //
+  // The binding case is 1024px, where the grid first splits and the copy column
+  // is at its narrowest (451.6px). The cap is set by 1440px, where the column
+  // stops growing because --bwg-maxw has taken over. Both land around 90%:
+  //
+  //    360px → 36.6px type → 236px of 320px column (74%)
+  //   1024px → 63.5px type → 410px of 451.6px column (91%)
+  //   1440px → 80.0px type → 516px of 577.7px column (89%)
+  --bwg-fs-display: clamp(2.29rem, 6.2vw, 5rem);
+
+  --bwg-lh-solid: 0.95; // stacked display lines
+  --bwg-lh-tight: 1.05;
+  --bwg-lh-snug: 1.25;
+  --bwg-lh-normal: 1.55;
+  --bwg-lh-relaxed: 1.75;
+
+  --bwg-tracking-tight: -0.03em;
+  --bwg-tracking-normal: 0;
+  --bwg-tracking-wide: 0.08em;
+  --bwg-tracking-eyebrow: 0.22em; // uppercase labels and eyebrows
+
+  // Long-form measure.
+  --bwg-measure: 54ch;
+
+  // ---------------------------------------------------------------------------
+  // Spacing — 4px base. Generous whitespace is a brand requirement, so the
+  // upper steps are large on purpose.
+  // ---------------------------------------------------------------------------
+  --bwg-sp-1: 0.25rem;
+  --bwg-sp-2: 0.5rem;
+  --bwg-sp-3: 0.75rem;
+  --bwg-sp-4: 1rem;
+  --bwg-sp-5: 1.5rem;
+  --bwg-sp-6: 2rem;
+  --bwg-sp-7: 2.5rem;
+  --bwg-sp-8: 3rem;
+  --bwg-sp-9: 4rem;
+  --bwg-sp-10: 5rem;
+  --bwg-sp-11: 7rem;
+
+  // Vertical rhythm between full-bleed sections.
+  --bwg-section-y: clamp(5rem, 9vw, 10rem);
+
+  // ---------------------------------------------------------------------------
+  // Radii — restrained. A premium investment group is not a rounded-corner brand.
+  // ---------------------------------------------------------------------------
+  --bwg-r-sm: 2px;
+  --bwg-r: 4px;
+  --bwg-r-lg: 8px;
+  --bwg-r-pill: 100px;
+  --bwg-r-circle: 50%;
+
+  // ---------------------------------------------------------------------------
+  // Elevation
+  // ---------------------------------------------------------------------------
+  --bwg-shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --bwg-shadow-md: 0 10px 30px rgb(0 0 0 / 35%);
+  --bwg-shadow-lg: 0 28px 70px rgb(0 0 0 / 50%);
+
+  // ---------------------------------------------------------------------------
+  // Motion — curves
+  // ---------------------------------------------------------------------------
+  --bwg-ease: cubic-bezier(0.22, 0.68, 0.24, 1);
+  --bwg-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  // The globe's entrance. Decelerates hard and long, so it drifts into place and
+  // stops rather than snapping.
+  --bwg-ease-drift: cubic-bezier(0.22, 1, 0.36, 1);
+
+  // ---------------------------------------------------------------------------
+  // Motion — durations
+  // ---------------------------------------------------------------------------
+  --bwg-dur-fast: 150ms;
+  --bwg-dur-base: 260ms;
+  --bwg-dur-slow: 420ms;
+  --bwg-dur-reveal: 700ms;
+  --bwg-dur-glow: 800ms; // hero glow fade-up
+  --bwg-dur-globe: 1400ms; // hero globe drift-in
+
+  // ---------------------------------------------------------------------------
+  // Motion — the hero entrance timeline.
+  //
+  // The whole sequence is declared here rather than scattered through the hero's
+  // stylesheet, so the choreography can be retimed in one place. Order is:
+  // glow -> globe -> headline -> copy -> labels.
+  // ---------------------------------------------------------------------------
+  --bwg-delay-glow: 0ms;
+  --bwg-delay-globe: 200ms;
+  --bwg-delay-headline: 600ms;
+  --bwg-delay-copy: 900ms;
+  --bwg-delay-labels: 1500ms;
+
+  --bwg-stagger-headline: 90ms;
+  --bwg-stagger-copy: 80ms;
+  --bwg-stagger-labels: 120ms;
+  --bwg-stagger-nav: 50ms; // mobile panel links
+
+  // Scroll-reveal, used by sections below the fold. The orbit waits for the copy
+  // beside it to land before its nodes start arriving.
+  --bwg-delay-orbit: 320ms;
+  --bwg-stagger-orbit: 90ms;
+
+  // ---------------------------------------------------------------------------
+  // Layout
+  // ---------------------------------------------------------------------------
+  --bwg-maxw: 1280px;
+  --bwg-gutter: clamp(20px, 5vw, 56px);
+  --bwg-nav-h: 84px; // transparent, over the hero
+  --bwg-nav-h-scrolled: 68px; // glass, after scrollY > 24
+  --bwg-logo-h: 34px; // never upscale the raster mark past this
+
+  // ---------------------------------------------------------------------------
+  // Z-index. The hero's three layers are z0/z1/z2 in the brief; they are named
+  // here so no component invents its own stacking value.
+  // ---------------------------------------------------------------------------
+  --bwg-z-base: 0; // z0 — dark base + gold glow
+  --bwg-z-globe: 1; // z1 — WebGL canvas / SVG fallback
+  --bwg-z-copy: 2; // z2 — headline, paragraph, CTAs, capability labels
+  --bwg-z-header: 200;
+  --bwg-z-panel: 300; // mobile navigation panel
+  --bwg-z-skip: 400; // skip-to-content must clear everything
+
+  // ---------------------------------------------------------------------------
+  // Interaction
+  // ---------------------------------------------------------------------------
+  --bwg-focus: var(--bwg-gold-bright);
+  --bwg-focus-width: 2px;
+  --bwg-focus-offset: 3px;
+  --bwg-selection-bg: var(--bwg-gold);
+  --bwg-selection-fg: var(--bwg-ink);
+
+  // ---------------------------------------------------------------------------
+  // RTL groundwork
+  //
+  // Layout uses logical properties throughout, so an Arabic version needs no
+  // stylesheet rewrite. `transform-origin` is the one exception — it has no
+  // logical keyword — so the leading edge is expressed as a token and flipped
+  // once, below, rather than in every rule that animates a rule in from it.
+  // ---------------------------------------------------------------------------
+  --bwg-origin-inline-start: left;
+  --bwg-origin-inline-end: right;
+
+  // The globe enters from the inline-end edge. Expressed as a token for the same
+  // reason: a translate percentage has no logical form, so RTL flips the sign.
+  --bwg-enter-inline-end: 35%;
+}
+
+[dir='rtl'] {
+  --bwg-origin-inline-start: right;
+  --bwg-origin-inline-end: left;
+  --bwg-enter-inline-end: -35%;
+}

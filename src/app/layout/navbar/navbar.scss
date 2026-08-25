@@ -1,0 +1,351 @@
+@use 'abstracts' as *;
+
+:host {
+  display: contents;
+}
+
+// =============================================================================
+// The bar
+// =============================================================================
+.nav {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: var(--bwg-z-header);
+  height: var(--bwg-nav-h);
+  // Transparent over the hero. Declared, not omitted, so the transition to the
+  // glass state has something to interpolate from.
+  background: transparent;
+  border-block-end: 1px solid transparent;
+  transition:
+    height var(--bwg-dur-slow) var(--bwg-ease-out),
+    background var(--bwg-dur-slow) var(--bwg-ease-out),
+    border-color var(--bwg-dur-slow) var(--bwg-ease-out);
+}
+
+.nav--scrolled {
+  height: var(--bwg-nav-h-scrolled);
+  border-block-end-color: var(--bwg-rule);
+
+  @include glass;
+}
+
+.nav__inner {
+  @include wrap;
+
+  display: flex;
+  align-items: center;
+  // Eight links plus the CTA do not fit at 1024px on the roomier spacing: the
+  // bar needs 997.8px of the 921.6px available. The tighter gaps below bring it
+  // to 856.7px, and the full spacing returns at xl where there is room for it.
+  gap: var(--bwg-sp-5);
+  height: 100%;
+
+  @include up('xl') {
+    gap: var(--bwg-sp-6);
+  }
+}
+
+// =============================================================================
+// Logo — the only 3D touch in the bar
+// =============================================================================
+.nav__logo {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-inline-end: auto;
+  perspective: 420px;
+}
+
+.nav__logo-tilt {
+  display: block;
+  transform-style: preserve-3d;
+  transition: transform var(--bwg-dur-slow) var(--bwg-ease-out);
+
+  img {
+    // Never upscaled: the source is 506x581 and this renders it at 34px tall.
+    height: var(--bwg-logo-h);
+    width: auto;
+  }
+}
+
+// =============================================================================
+// Desktop links
+// =============================================================================
+.nav__links {
+  display: none;
+
+  @include up('lg') {
+    display: block;
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    // Never wrap: the bar has a fixed height, so a wrapped row would overflow it
+    // rather than growing it.
+    flex-wrap: nowrap;
+    gap: var(--bwg-sp-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @include up('xl') {
+      gap: var(--bwg-sp-6);
+    }
+  }
+}
+
+.nav__link {
+  position: relative;
+  display: block;
+  padding-block: var(--bwg-sp-2);
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui);
+  letter-spacing: var(--bwg-tracking-wide);
+  white-space: nowrap;
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+
+  @include gold-underline;
+
+  &:hover,
+  &:focus-visible,
+  &.is-active {
+    color: var(--bwg-text);
+
+    &::after {
+      transform: scaleX(1);
+    }
+  }
+}
+
+// =============================================================================
+// CTA
+// =============================================================================
+.nav__cta {
+  display: none;
+  align-items: center;
+  gap: var(--bwg-sp-2);
+  flex: 0 0 auto;
+  // Narrower below xl, for the same 1024px width budget as the link gaps.
+  padding: var(--bwg-sp-3) var(--bwg-sp-4);
+  border: 1px solid var(--bwg-gold);
+  border-radius: var(--bwg-r);
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+  white-space: nowrap;
+  transition:
+    background var(--bwg-dur-base) var(--bwg-ease-out),
+    color var(--bwg-dur-base) var(--bwg-ease-out),
+    border-color var(--bwg-dur-base) var(--bwg-ease-out);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--bwg-gold);
+    border-color: var(--bwg-gold);
+    color: var(--bwg-ink);
+  }
+
+  @include up('lg') {
+    display: inline-flex;
+  }
+
+  @include up('xl') {
+    padding-inline: var(--bwg-sp-5);
+  }
+}
+
+.nav__cta-arrow {
+  transition: transform var(--bwg-dur-base) var(--bwg-ease-out);
+
+  .nav__cta:hover & {
+    transform: translateX(3px);
+  }
+}
+
+// =============================================================================
+// Progress hairline
+// =============================================================================
+.nav__progress {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  height: 1px;
+  background: var(--bwg-gold);
+  transform-origin: var(--bwg-origin-inline-start) center;
+  opacity: 0;
+  transition: opacity var(--bwg-dur-base) var(--bwg-ease-out);
+
+  .nav--scrolled & {
+    opacity: 1;
+  }
+}
+
+// =============================================================================
+// Hamburger
+// =============================================================================
+.nav__burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin-inline-end: calc(var(--bwg-sp-3) * -1);
+  color: var(--bwg-text);
+
+  @include up('lg') {
+    display: none;
+  }
+}
+
+.nav__burger-bars {
+  display: block;
+  position: relative;
+  width: 22px;
+  height: 10px;
+
+  i {
+    position: absolute;
+    inset-inline: 0;
+    height: 1px;
+    background: currentcolor;
+    transition: transform var(--bwg-dur-base) var(--bwg-ease-out);
+
+    &:first-child {
+      inset-block-start: 0;
+    }
+
+    &:last-child {
+      inset-block-end: 0;
+    }
+  }
+
+  &.is-open i {
+    &:first-child {
+      transform: translateY(4.5px) rotate(45deg);
+    }
+
+    &:last-child {
+      transform: translateY(-4.5px) rotate(-45deg);
+    }
+  }
+}
+
+// =============================================================================
+// Mobile panel
+// =============================================================================
+.nav-panel {
+  position: fixed;
+  inset: 0;
+  z-index: var(--bwg-z-panel);
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--bwg-gutter) var(--bwg-sp-8);
+  background: var(--bwg-ink);
+  overflow-y: auto;
+  animation: nav-panel-in var(--bwg-dur-base) var(--bwg-ease-out) both;
+}
+
+.nav-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--bwg-nav-h);
+  flex: 0 0 auto;
+}
+
+.nav-panel__logo img {
+  height: var(--bwg-logo-h);
+  width: auto;
+}
+
+.nav-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-inline-end: calc(var(--bwg-sp-3) * -1);
+  color: var(--bwg-text);
+}
+
+.nav-panel__nav {
+  margin-block-start: var(--bwg-sp-8);
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.nav-panel__item {
+  border-block-end: 1px solid var(--bwg-hairline);
+  // 50ms apart, index supplied by the template so the numerals and the stagger
+  // read from the same source.
+  animation: nav-item-in var(--bwg-dur-slow) var(--bwg-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * var(--bwg-stagger-nav));
+}
+
+.nav-panel__link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bwg-sp-4);
+  padding-block: var(--bwg-sp-5);
+  color: var(--bwg-text);
+
+  &:hover .nav-panel__label,
+  &:focus-visible .nav-panel__label {
+    color: var(--bwg-gold-bright);
+  }
+}
+
+.nav-panel__num {
+  flex: 0 0 auto;
+  color: var(--bwg-gold);
+  font-family: var(--bwg-font-ui);
+  font-size: var(--bwg-fs-xs);
+  letter-spacing: var(--bwg-tracking-wide);
+}
+
+.nav-panel__label {
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-2xl);
+  font-weight: var(--bwg-fw-display);
+  line-height: var(--bwg-lh-snug);
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.nav-panel__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bwg-sp-2);
+  margin-block-start: var(--bwg-sp-8);
+  padding: var(--bwg-sp-4) var(--bwg-sp-6);
+  background: var(--bwg-gold);
+  border-radius: var(--bwg-r);
+  color: var(--bwg-ink);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+  animation: nav-item-in var(--bwg-dur-slow) var(--bwg-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * var(--bwg-stagger-nav));
+}
+
+@keyframes nav-panel-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes nav-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

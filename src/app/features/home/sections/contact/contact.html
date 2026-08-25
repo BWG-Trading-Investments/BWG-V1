@@ -1,0 +1,40 @@
+<section id="contact" class="section">
+  <div class="section__inner">
+    <h2 class="section__heading contact__heading">
+      @for (line of copy.headingLines; track line) {
+        <span class="section__heading-line">{{ line }}</span>
+      }
+    </h2>
+
+    <div class="contact__body">
+      @for (paragraph of copy.body; track paragraph) {
+        <p class="prose">{{ paragraph }}</p>
+      }
+    </div>
+
+    <p class="contact__closing">{{ copy.closing }}</p>
+
+    <ul class="contact__actions" role="list">
+      @for (action of copy.actions; track action) {
+        <li>{{ action }}</li>
+      }
+    </ul>
+
+    <address class="contact__details">
+      <p class="contact__address">
+        @for (line of copy.addressLines; track line) {
+          <span>{{ line }}</span>
+        }
+      </p>
+
+      <dl class="contact__meta">
+        @for (detail of copy.details; track detail.label) {
+          <div class="contact__row">
+            <dt>{{ detail.label }}</dt>
+            <dd>{{ detail.value }}</dd>
+          </div>
+        }
+      </dl>
+    </address>
+  </div>
+</section>

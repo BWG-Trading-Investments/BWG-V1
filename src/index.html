@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BWG — Business World Group | Build. Grow. Invest.</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="BWG (Business World Group) is a diversified international holding company that builds, grows and prepares businesses for real market expansion and investment readiness — across trade, technology, and advisory."
+    />
+    <meta name="theme-color" content="#07080B" />
+
+    <!--
+      Montserrat (display, 600/800) and Inter (UI, 400/500) — the only two families
+      in the brand. The display face is a heavy geometric sans to match the hero
+      reference; it replaced Cormorant Garamond, which could not carry it.
+      display=swap so the fallback stacks in _tokens.scss paint immediately and
+      text is never invisible.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500&display=swap"
+    />
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <!-- Open Graph / Twitter tags and JSON-LD are added with the SEO service in a later phase. -->
+
+    <!--
+      Marks the document as JavaScript-capable before first paint.
+
+      The hero's entrance animations are gated on this class, so the prerendered
+      HTML and any no-JS view render every element in its final, visible state
+      rather than sitting at opacity 0 forever. Inline and synchronous on
+      purpose: a deferred script would let the finished state paint first and
+      then visibly jump back to the start of the animation.
+    -->
+    <script>
+      document.documentElement.classList.add('bwg-js');
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

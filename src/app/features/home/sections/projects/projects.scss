@@ -1,0 +1,64 @@
+@use 'abstracts' as *;
+
+:host {
+  display: block;
+}
+
+.section {
+  @include section-shell;
+}
+
+.section__inner {
+  @include wrap;
+}
+
+.section__heading {
+  @include section-heading;
+}
+
+.section__lead {
+  margin-block-start: var(--bwg-sp-5);
+}
+
+.section__heading-line {
+  display: block;
+}
+
+.cards {
+  @include card-grid;
+
+  margin-block-start: var(--bwg-sp-8);
+}
+
+.card {
+  padding: var(--bwg-sp-5);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: var(--bwg-r);
+  background: var(--bwg-navy-soft);
+}
+
+.card__title {
+  color: var(--bwg-gold);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-lg);
+  font-weight: var(--bwg-fw-display-strong);
+  letter-spacing: var(--bwg-tracking-normal);
+}
+
+.card__body {
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text-muted);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+.projects__closing {
+  margin-block-start: var(--bwg-sp-8);
+  color: var(--bwg-gold);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-xl);
+  font-weight: var(--bwg-fw-display);
+
+  span {
+    display: block;
+  }
+}

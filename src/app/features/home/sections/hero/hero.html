@@ -1,0 +1,178 @@
+<section id="hero" class="hero">
+  <!-- z0 — dark base plus the gold radial glow behind the globe. -->
+  <div class="hero__glow" aria-hidden="true"></div>
+
+  <div class="hero__inner">
+    <!-- z2 — copy overlay. -->
+    <div class="hero__copy">
+      <img
+        class="hero__mark"
+        src="/assets/bwg-logo-v2.png"
+        alt="BWG — Business World Group"
+        width="63"
+        height="72"
+        decoding="async"
+        fetchpriority="high"
+      />
+
+      <h1 class="hero__headline">
+        @for (line of headline; track line; let i = $index) {
+          <span class="hero__line" [class.hero__line--gold]="i > 0" [style.--line-index]="i">
+            <span class="hero__line-inner">{{ line }}</span>
+          </span>
+        }
+      </h1>
+
+      <p class="hero__subline hero__reveal" style="--copy-index: 0">{{ copy.subline }}</p>
+
+      <span class="hero__rule hero__reveal" style="--copy-index: 1" aria-hidden="true"></span>
+
+      <p class="hero__paragraph hero__reveal" style="--copy-index: 2">{{ copy.paragraph }}</p>
+
+      <p class="hero__tagline hero__reveal" style="--copy-index: 3">{{ copy.tagline }}</p>
+
+      <div class="hero__actions">
+        <a
+          class="hero__btn hero__btn--filled hero__reveal"
+          style="--copy-index: 4"
+          [href]="'#' + actions.primary.target"
+          (click)="onAnchor($event, actions.primary.target)"
+        >
+          {{ actions.primary.label }} <span aria-hidden="true">&rarr;</span>
+        </a>
+        <a
+          class="hero__btn hero__btn--outline hero__reveal"
+          style="--copy-index: 5"
+          [href]="'#' + actions.secondary.target"
+          (click)="onAnchor($event, actions.secondary.target)"
+        >
+          {{ actions.secondary.label }} <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="hero__stage">
+      <!--
+        z1 — the globe. The entrance transform sits on this wrapper rather than on
+        the canvas itself, so swapping the SVG globe for the WebGL one mid-flight
+        does not restart the animation.
+      -->
+      <div class="hero__globe">
+        @if (useWebgl()) {
+          @defer (on immediate) {
+            <bwg-globe (failed)="onGlobeFailed()" />
+          } @placeholder {
+            <bwg-globe-static />
+          } @error {
+            <bwg-globe-static />
+          }
+        } @else {
+          <bwg-globe-static />
+        }
+      </div>
+
+      <ul class="hero__labels" role="list">
+        @for (cap of capabilities; track cap.label; let i = $index) {
+          <li
+            class="cap"
+            [attr.data-side]="cap.side"
+            [attr.data-slot]="cap.slot"
+            [style.--cap-index]="i"
+          >
+            <a
+              class="cap__link"
+              [href]="'#' + cap.target"
+              (click)="onAnchor($event, cap.target)"
+            >
+              <span class="cap__icon" aria-hidden="true">
+                @switch (cap.icon) {
+                  @case ('chip') {
+                    <svg
+                      viewBox="0 0 20 20"
+                      width="20"
+                      height="20"
+                      stroke="currentColor"
+                      stroke-width="1.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="6" y="6" width="8" height="8" rx="1" />
+                      <rect x="8.75" y="8.75" width="2.5" height="2.5" />
+                      <path
+                        d="M8.5 6V3.2M11.5 6V3.2M8.5 14v2.8M11.5 14v2.8M6 8.5H3.2M6 11.5H3.2M14 8.5h2.8M14 11.5h2.8"
+                      />
+                    </svg>
+                  }
+                  @case ('globe') {
+                    <svg
+                      viewBox="0 0 20 20"
+                      width="20"
+                      height="20"
+                      stroke="currentColor"
+                      stroke-width="1.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="10" cy="10" r="7" />
+                      <path d="M10 3c1.9 2 2.9 4.4 2.9 7s-1 5-2.9 7c-1.9-2-2.9-4.4-2.9-7s1-5 2.9-7Z" />
+                      <path d="M3.3 8h13.4M3.3 12h13.4" />
+                    </svg>
+                  }
+                  @case ('growth') {
+                    <svg
+                      viewBox="0 0 20 20"
+                      width="20"
+                      height="20"
+                      stroke="currentColor"
+                      stroke-width="1.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M3 15.2 8 10.2l2.8 2.8L17 6.8" />
+                      <path d="M12.6 6.8H17v4.4" />
+                    </svg>
+                  }
+                  @case ('megaphone') {
+                    <svg
+                      viewBox="0 0 20 20"
+                      width="20"
+                      height="20"
+                      stroke="currentColor"
+                      stroke-width="1.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M13.2 5.2 6.6 8.4H4.4A1.4 1.4 0 0 0 3 9.8v.4a1.4 1.4 0 0 0 1.4 1.4h2.2l6.6 3.2z" />
+                      <path d="M15.6 8.4a2.8 2.8 0 0 1 0 3.2" />
+                      <path d="M6.8 11.8v2.6a1.5 1.5 0 0 0 3 0v-1.2" />
+                    </svg>
+                  }
+                  @case ('handshake') {
+                    <svg
+                      viewBox="0 0 20 20"
+                      width="20"
+                      height="20"
+                      stroke="currentColor"
+                      stroke-width="1.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M10 7.6 12.1 5.5a1.9 1.9 0 0 1 2.7 0L17 7.7v4.4l-2.4 2.4a1.4 1.4 0 0 1-2 0L10 12.5" />
+                      <path d="M10 7.6 7.9 5.5a1.9 1.9 0 0 0-2.7 0L3 7.7v4.4l2.4 2.4a1.4 1.4 0 0 0 2 0L10 12.5" />
+                    </svg>
+                  }
+                }
+              </span>
+
+              <span class="cap__body">
+                <span class="cap__label">{{ cap.label }}</span>
+                <span class="cap__line">{{ cap.lineOne }}</span>
+                <span class="cap__line">{{ cap.lineTwo }}</span>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</section>

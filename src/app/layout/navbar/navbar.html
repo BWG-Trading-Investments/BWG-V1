@@ -1,0 +1,156 @@
+<header class="nav" [class.nav--scrolled]="scrolled()" [attr.inert]="menuOpen() ? '' : null">
+  <div class="nav__inner">
+    <a
+      class="nav__logo"
+      routerLink="/"
+      aria-label="BWG — Business World Group, home"
+      (pointermove)="onLogoMove($event)"
+      (pointerleave)="onLogoLeave()"
+    >
+      <span class="nav__logo-tilt" [style.transform]="logoTransform()">
+        <img
+          src="/assets/bwg-logo-v2.png"
+          alt="BWG — Business World Group"
+          width="30"
+          height="34"
+          decoding="async"
+        />
+      </span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <ul role="list">
+        @for (item of navItems; track item.label) {
+          <li>
+            @if (item.kind === 'route') {
+              <a
+                class="nav__link"
+                [routerLink]="item.target"
+                [class.is-active]="isActive(item)"
+                [attr.aria-current]="currentFor(item)"
+                >{{ item.label }}</a
+              >
+            } @else {
+              <a
+                class="nav__link"
+                [href]="'#' + item.target"
+                [class.is-active]="isActive(item)"
+                [attr.aria-current]="currentFor(item)"
+                (click)="onAnchor($event, item)"
+                >{{ item.label }}</a
+              >
+            }
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <a class="nav__cta" [href]="'#' + cta.target" (click)="onAnchor($event, cta)">
+      {{ cta.label }} <span class="nav__cta-arrow" aria-hidden="true">&rarr;</span>
+    </a>
+
+    <button
+      #burger
+      class="nav__burger"
+      type="button"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="bwg-nav-panel"
+      [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'"
+      (click)="toggleMenu()"
+    >
+      <span class="nav__burger-bars" [class.is-open]="menuOpen()" aria-hidden="true">
+        <i></i>
+        <i></i>
+      </span>
+    </button>
+  </div>
+
+  <!--
+    Scroll progress. Only visible in the scrolled state, and scaled rather than
+    resized so it stays on the compositor.
+  -->
+  <span
+    class="nav__progress"
+    [style.transform]="'scaleX(' + progress() + ')'"
+    aria-hidden="true"
+  ></span>
+</header>
+
+@if (menuOpen()) {
+  <div
+    #panel
+    id="bwg-nav-panel"
+    class="nav-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Site navigation"
+  >
+    <div class="nav-panel__head">
+      <a class="nav-panel__logo" routerLink="/" (click)="closeMenu()" aria-label="BWG, home">
+        <img
+          src="/assets/bwg-logo-v2.png"
+          alt="BWG — Business World Group"
+          width="30"
+          height="34"
+          decoding="async"
+        />
+      </a>
+
+      <button
+        class="nav-panel__close"
+        type="button"
+        data-panel-focus
+        aria-label="Close menu"
+        (click)="closeMenu()"
+      >
+        <span class="nav__burger-bars is-open" aria-hidden="true">
+          <i></i>
+          <i></i>
+        </span>
+      </button>
+    </div>
+
+    <nav class="nav-panel__nav" aria-label="Primary">
+      <ul role="list">
+        @for (item of navItems; track item.label; let i = $index) {
+          <li class="nav-panel__item" [style.--stagger-index]="i">
+            @if (item.kind === 'route') {
+              <a
+                class="nav-panel__link"
+                [routerLink]="item.target"
+                [attr.aria-current]="currentFor(item)"
+                (click)="closeMenu()"
+              >
+                <span class="nav-panel__num" aria-hidden="true">{{
+                  (i + 1).toString().padStart(2, '0')
+                }}</span>
+                <span class="nav-panel__label">{{ item.label }}</span>
+              </a>
+            } @else {
+              <a
+                class="nav-panel__link"
+                [href]="'#' + item.target"
+                [attr.aria-current]="currentFor(item)"
+                (click)="onAnchor($event, item)"
+              >
+                <span class="nav-panel__num" aria-hidden="true">{{
+                  (i + 1).toString().padStart(2, '0')
+                }}</span>
+                <span class="nav-panel__label">{{ item.label }}</span>
+              </a>
+            }
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <a
+      class="nav-panel__cta"
+      [style.--stagger-index]="navItems.length"
+      [href]="'#' + cta.target"
+      (click)="onAnchor($event, cta)"
+    >
+      {{ cta.label }} <span aria-hidden="true">&rarr;</span>
+    </a>
+  </div>
+}

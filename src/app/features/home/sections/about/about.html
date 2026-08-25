@@ -1,0 +1,32 @@
+<section id="about" class="section">
+  <div class="section__inner">
+    <p class="eyebrow">{{ copy.eyebrow }}</p>
+    <h2 class="section__heading">{{ copy.heading }}</h2>
+
+    <div class="about__body">
+      @for (paragraph of copy.body; track paragraph) {
+        <p class="prose">{{ paragraph }}</p>
+      }
+      <p class="prose">{{ copy.combinationIntro }}</p>
+    </div>
+
+    <ul class="about__pillars" role="list">
+      @for (item of copy.combination; track item) {
+        <li>{{ item }}</li>
+      }
+    </ul>
+
+    <p class="about__closing">{{ copy.combinationClosing }}</p>
+
+    <div class="about__statements">
+      <div class="about__statement">
+        <p class="eyebrow">{{ copy.missionLabel }}</p>
+        <blockquote class="about__quote">{{ copy.mission }}</blockquote>
+      </div>
+      <div class="about__statement">
+        <p class="eyebrow">{{ copy.visionLabel }}</p>
+        <blockquote class="about__quote">{{ copy.vision }}</blockquote>
+      </div>
+    </div>
+  </div>
+</section>

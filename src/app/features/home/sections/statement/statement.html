@@ -1,0 +1,139 @@
+<section id="statement" class="section" [class.is-revealed]="revealed()">
+  <div class="section__inner statement__grid">
+    <div class="statement__copy">
+      <p class="eyebrow statement__reveal" style="--reveal-index: 0">{{ copy.eyebrow }}</p>
+
+      <h2 class="statement__headline">
+        @for (line of copy.headingLines; track line; let i = $index) {
+          <span
+            class="statement__headline-line statement__reveal"
+            [class.statement__headline-line--gold]="i > 0"
+            [style.--reveal-index]="i + 1"
+            >{{ line }}</span
+          >
+        }
+      </h2>
+
+      <p class="statement__lead statement__reveal" style="--reveal-index: 3">{{ copy.lead }}</p>
+
+      <p class="statement__pull statement__reveal" style="--reveal-index: 4">{{ copy.pull }}</p>
+
+      @for (paragraph of copy.paragraphs; track paragraph; let i = $index) {
+        <p class="statement__para statement__reveal" [style.--reveal-index]="i + 5">
+          {{ paragraph }}
+        </p>
+      }
+
+      <p class="statement__closing statement__reveal" style="--reveal-index: 7">
+        {{ copy.closing }}
+      </p>
+    </div>
+
+    <div class="statement__diagram diagram">
+      <!--
+        Decorative: every word in the diagram is real text in the label layer
+        below, so the graphic itself carries no information of its own.
+      -->
+      <svg class="diagram__canvas" [attr.viewBox]="viewBox" aria-hidden="true">
+        <circle class="diagram__orbit" [attr.cx]="centre" [attr.cy]="centre" [attr.r]="orbitRadius" />
+
+        @for (node of nodes; track node.label; let i = $index) {
+          <line
+            class="diagram__spoke"
+            [style.--node-index]="i"
+            [attr.x1]="node.spokeX1"
+            [attr.y1]="node.spokeY1"
+            [attr.x2]="node.spokeX2"
+            [attr.y2]="node.spokeY2"
+          />
+        }
+
+        <circle class="diagram__hub-ring" [attr.cx]="centre" [attr.cy]="centre" [attr.r]="hubRadius" />
+
+        @for (node of nodes; track node.label; let i = $index) {
+          <g class="diagram__node" [style.--node-index]="i">
+            <circle
+              class="diagram__node-disc"
+              [attr.cx]="node.x"
+              [attr.cy]="node.y"
+              [attr.r]="nodeRadius"
+            />
+            <g class="diagram__node-icon" [attr.transform]="node.iconTransform">
+              @switch (node.icon) {
+                @case ('megaphone') {
+                  <path
+                    d="M13.2 5.2 6.6 8.4H4.4A1.4 1.4 0 0 0 3 9.8v.4a1.4 1.4 0 0 0 1.4 1.4h2.2l6.6 3.2z"
+                  />
+                  <path d="M15.6 8.4a2.8 2.8 0 0 1 0 3.2" />
+                  <path d="M6.8 11.8v2.6a1.5 1.5 0 0 0 3 0v-1.2" />
+                }
+                @case ('globe') {
+                  <circle cx="10" cy="10" r="7" />
+                  <path d="M10 3c1.9 2 2.9 4.4 2.9 7s-1 5-2.9 7c-1.9-2-2.9-4.4-2.9-7s1-5 2.9-7Z" />
+                  <path d="M3.3 8h13.4M3.3 12h13.4" />
+                }
+                @case ('code') {
+                  <path d="M7.5 6.4 3.7 10l3.8 3.6" />
+                  <path d="M12.5 6.4 16.3 10l-3.8 3.6" />
+                  <path d="M11.3 4.5 8.7 15.5" />
+                }
+                @case ('chart') {
+                  <path d="M3.4 16.4h13.2" />
+                  <path d="M6.3 16.4v-5.2" />
+                  <path d="M10 16.4V6.4" />
+                  <path d="M13.7 16.4v-3.3" />
+                }
+                @case ('handshake') {
+                  <path
+                    d="M10 7.6 12.1 5.5a1.9 1.9 0 0 1 2.7 0L17 7.7v4.4l-2.4 2.4a1.4 1.4 0 0 1-2 0L10 12.5"
+                  />
+                  <path
+                    d="M10 7.6 7.9 5.5a1.9 1.9 0 0 0-2.7 0L3 7.7v4.4l2.4 2.4a1.4 1.4 0 0 0 2 0L10 12.5"
+                  />
+                }
+              }
+            </g>
+          </g>
+        }
+      </svg>
+
+      <!--
+        The BWG mark sits over the hub ring rather than inside the SVG, so the
+        raster asset is never scaled by the viewBox.
+      -->
+      <span class="diagram__mark">
+        <img
+          src="/assets/bwg-logo-v2.png"
+          alt="BWG — Business World Group"
+          width="42"
+          height="48"
+          decoding="async"
+        />
+      </span>
+
+      <!-- Real text, positioned over the graphic from the same computed points. -->
+      <ul class="diagram__labels" role="list">
+        @for (node of nodes; track node.label; let i = $index) {
+          <li
+            class="diagram__label"
+            [style.--node-index]="i"
+            [style.inset-inline-start.%]="node.xPercent"
+            [style.inset-block-start.%]="node.labelYPercent"
+          >
+            {{ node.label }}
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="section__inner">
+    <ul class="statement__strip" role="list">
+      @for (item of copy.strip; track item; let i = $index) {
+        <li class="statement__strip-item statement__reveal" [style.--reveal-index]="i + 8">
+          {{ item }}
+        </li>
+      }
+    </ul>
+  </div>
+</section>

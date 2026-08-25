@@ -1,0 +1,782 @@
+import { DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  type OnDestroy,
+  afterNextRender,
+  inject,
+  output,
+  viewChild,
+} from '@angular/core';
+
+import { ARC_ROUTES, type GeoPoint, sampleLandPoints, toVector } from './world-map';
+
+// Types only — erased at compile time, so this does NOT pull Three.js into the
+// bundle or into the prerender. The library itself arrives via the dynamic
+// import inside start(), which only ever runs in a browser.
+import type * as THREE from 'three';
+
+/** Radians per second. Slow enough to read as a rotating planet, not a spinner. */
+const ROTATION_SPEED = 0.05;
+
+/** Maximum cursor parallax, in CSS pixels. */
+const PARALLAX_PX = 8;
+
+/** Axial tilt, matching the SVG fallback so the two globes look like one globe. */
+const AXIAL_TILT = -0.31;
+
+/** Candidates tested against the landmask. Roughly a third come back as land. */
+const LAND_SAMPLES = 24000;
+
+/** Share of land points promoted to the brighter "city lights" layer. */
+const CITY_SHARE = 0.15;
+
+/** Land sits fractionally above the body so it is occluded by it, not inside it. */
+const LAND_RADIUS = 1.002;
+
+/** Atmosphere shell radius. The visible rim is the annulus outside the body. */
+const ATMOSPHERE_RADIUS = 1.06;
+
+/** The wide outer haze. This is the outermost geometry, so it sets the framing. */
+const HAZE_RADIUS = 1.16;
+
+/** Vertical field of view, in degrees. */
+const FOV = 34;
+
+/**
+ * Camera distance, chosen so the whole globe fits the stage rather than being
+ * clipped by it.
+ *
+ * The visible extent at the origin is 2 * tan(FOV/2) * distance. The outermost
+ * geometry is the haze shell, spanning 2 * 1.16 = 2.32 world units, and the
+ * stage is always square (aspect-ratio: 1), so the same number bounds both axes.
+ *
+ *   2 * tan(17deg) * 4.75 = 2.90 world units visible
+ *   2.90 - 2.32 = 0.58, i.e. 0.29 of clear margin on every side
+ *
+ * At 3.25 the visible extent was 1.99 against the same 2.32 — which is exactly
+ * why the globe was being cut off top, right and bottom.
+ */
+const CAMERA_DISTANCE = 4.75;
+
+interface Palette {
+  readonly body: string;
+  readonly light: string;
+  readonly ambient: string;
+  readonly haze: string;
+  readonly land: string;
+  readonly city: string;
+  readonly atmosphere: string;
+  readonly arc: string;
+  readonly node: string;
+}
+
+/**
+ * Mirrors the --bwg-globe-* tokens in _tokens.scss, and is the one place in a
+ * component where a colour is written as a literal.
+ *
+ * It is only reached if getComputedStyle hands back an empty string, which means
+ * the stylesheet has not applied — the globe loads after first paint, so that
+ * should not happen. The alternative to duplicating the values is rendering an
+ * uncoloured globe when it does. _tokens.scss remains the source of truth; if a
+ * value changes there, change it here too.
+ */
+const FALLBACK_PALETTE: Palette = {
+  body: '#12151c',
+  light: '#ffd9a0',
+  ambient: '#2a3140',
+  haze: '#c9a15b',
+  land: '#d0a862',
+  city: '#f0d494',
+  atmosphere: '#c9a15b',
+  arc: '#d9b877',
+  node: '#f4e2b8',
+};
+
+/**
+ * The fresnel shell, used for both the atmosphere and the wider haze.
+ *
+ * Drawn on the inside of a sphere larger than the body. Everything within the
+ * body's silhouette is depth-occluded, so the only part that survives is the
+ * annulus around the limb: brightest where it meets the planet's edge, falling
+ * off outward. That is the lit horizon, for one extra draw call and no
+ * postprocessing.
+ *
+ * uPower controls how tightly the falloff hugs the limb — lower is wider.
+ */
+const SHELL_VERTEX = `
+  varying vec3 vNormal;
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const SHELL_FRAGMENT = `
+  uniform vec3 uColor;
+  uniform float uPower;
+  uniform float uStrength;
+  varying vec3 vNormal;
+  void main() {
+    float rim = 0.78 - dot(normalize(vNormal), vec3(0.0, 0.0, 1.0));
+    float intensity = clamp(pow(max(rim, 0.0), uPower), 0.0, 1.0) * uStrength;
+    gl_FragColor = vec4(uColor * intensity, intensity);
+  }
+`;
+
+/**
+ * The globe, in WebGL.
+ *
+ * Loaded lazily by the hero after first paint and only when the device is worth
+ * spending a GPU context on — never below 768px, never on four cores or fewer,
+ * never under reduced motion. If a context cannot be created it emits `failed`
+ * and the hero falls back to the SVG globe.
+ *
+ * The entrance animation is deliberately NOT here: the hero transforms the
+ * wrapping element in CSS. Moving the camera instead would cost more and would
+ * change the scene's framing mid-flight.
+ */
+@Component({
+  selector: 'bwg-globe',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<canvas #canvas aria-hidden="true"></canvas>`,
+  styles: `
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  `,
+})
+export class Globe implements OnDestroy {
+  /** Emitted when WebGL is unavailable, so the hero can swap in the SVG globe. */
+  readonly failed = output<void>();
+
+  private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
+  private readonly document = inject(DOCUMENT);
+
+  private renderer: THREE.WebGLRenderer | null = null;
+  private scene: THREE.Scene | null = null;
+  private camera: THREE.PerspectiveCamera | null = null;
+  private root: THREE.Group | null = null;
+
+  private readonly disposables: { dispose(): void }[] = [];
+  private readonly arcs: { material: THREE.LineBasicMaterial; phase: number }[] = [];
+
+  /** One travelling pulse per arc, riding its precomputed curve. */
+  private readonly pulses: {
+    sprite: THREE.Sprite;
+    material: THREE.SpriteMaterial;
+    path: THREE.Vector3[];
+    phase: number;
+  }[] = [];
+
+  private palette: Palette = FALLBACK_PALETTE;
+
+  /** One soft round dot, shared by the land, node and pulse materials. */
+  private dotTexture: THREE.Texture | null = null;
+
+  private resizeObserver: ResizeObserver | null = null;
+  private viewportObserver: IntersectionObserver | null = null;
+  private detachListeners: (() => void) | null = null;
+
+  private inViewport = true;
+  private running = false;
+  private destroyed = false;
+
+  private lastFrame = 0;
+  private elapsed = 0;
+
+  /** Parallax, in world units: where the globe is, and where it is heading. */
+  private offsetX = 0;
+  private offsetY = 0;
+  private targetX = 0;
+  private targetY = 0;
+  private pointer = { x: 0, y: 0 };
+
+  constructor() {
+    // afterNextRender never runs during prerender, so Node never reaches any of
+    // the DOM or WebGL below.
+    afterNextRender(() => void this.start());
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.teardown();
+  }
+
+  private async start(): Promise<void> {
+    const canvas = this.canvasRef().nativeElement;
+
+    let three: typeof THREE;
+    try {
+      three = await import('three');
+    } catch {
+      this.fail();
+      return;
+    }
+
+    // The import is async; the hero may have swapped us out in the meantime.
+    if (this.destroyed) {
+      return;
+    }
+
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new three.WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: true,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      // Context creation fails on blocklisted drivers and when too many contexts
+      // are already live. Never leave an empty box behind.
+      this.fail();
+      return;
+    }
+
+    // Capped at 2: beyond that the cost is real and the difference is not.
+    renderer.setPixelRatio(Math.min(2, this.document.defaultView?.devicePixelRatio ?? 1));
+    renderer.setClearAlpha(0);
+    this.renderer = renderer;
+
+    this.readPalette();
+
+    this.scene = new three.Scene();
+    // Near and far are pulled tight around the geometry. A 0.1 near plane spends
+    // almost all of the depth buffer on empty space, and the land points sit only
+    // 0.002 above the body — they z-fight without this.
+    this.camera = new three.PerspectiveCamera(
+      FOV,
+      1,
+      CAMERA_DISTANCE - HAZE_RADIUS - 0.5,
+      CAMERA_DISTANCE + HAZE_RADIUS + 0.5,
+    );
+    this.camera.position.set(0, 0, CAMERA_DISTANCE);
+
+    this.root = new three.Group();
+    this.root.rotation.x = AXIAL_TILT;
+    this.scene.add(this.root);
+
+    this.dotTexture = this.createDotTexture(three);
+    if (this.dotTexture) {
+      this.disposables.push(this.dotTexture);
+    }
+
+    this.buildLighting(three);
+    this.buildBody(three);
+    this.buildShells(three);
+    this.buildLand(three);
+    this.buildNetwork(three);
+
+    this.resize();
+    this.watchResize();
+    this.watchVisibility();
+    this.watchPointer();
+    this.resume();
+  }
+
+  /**
+   * Read the globe's colours from the design tokens.
+   *
+   * The canvas cannot use var(), so the values are lifted off the document
+   * element once at startup. This keeps _tokens.scss the single source of colour
+   * for the WebGL globe and the SVG fallback alike.
+   */
+  private readPalette(): void {
+    const view = this.document.defaultView;
+    if (!view) {
+      return;
+    }
+
+    const styles = view.getComputedStyle(this.document.documentElement);
+    const read = (name: string, fallback: string): string =>
+      styles.getPropertyValue(name).trim() || fallback;
+
+    this.palette = {
+      body: read('--bwg-globe-body', FALLBACK_PALETTE.body),
+      light: read('--bwg-globe-light', FALLBACK_PALETTE.light),
+      ambient: read('--bwg-globe-ambient', FALLBACK_PALETTE.ambient),
+      haze: read('--bwg-globe-haze', FALLBACK_PALETTE.haze),
+      land: read('--bwg-globe-land', FALLBACK_PALETTE.land),
+      city: read('--bwg-globe-city', FALLBACK_PALETTE.city),
+      atmosphere: read('--bwg-globe-atmosphere', FALLBACK_PALETTE.atmosphere),
+      arc: read('--bwg-globe-arc', FALLBACK_PALETTE.arc),
+      node: read('--bwg-globe-node', FALLBACK_PALETTE.node),
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scene
+  // ---------------------------------------------------------------------------
+
+  /**
+   * A warm gold key light from the front-lower-left, plus a low cool fill.
+   *
+   * The key is deliberately off-axis: a light at the camera flattens the sphere
+   * into a disc. Placed down and to the left it produces a terminator, which is
+   * what reads as a planet. The ambient is only strong enough to keep the dark
+   * side from going to pure black.
+   *
+   * Both are added to the scene, not to the rotating root, so the lighting stays
+   * put while the globe turns underneath it.
+   */
+  private buildLighting(three: typeof THREE): void {
+    const key = new three.DirectionalLight(new three.Color(this.palette.light), 2.6);
+    key.position.set(-2.2, -1.4, 2.6);
+    this.scene?.add(key);
+
+    const fill = new three.AmbientLight(new three.Color(this.palette.ambient), 0.55);
+    this.scene?.add(fill);
+  }
+
+  /** The solid planet. Opaque and depth-writing — this is what makes it a globe. */
+  private buildBody(three: typeof THREE): void {
+    const geometry = new three.SphereGeometry(1, 64, 48);
+    const material = new three.MeshStandardMaterial({
+      color: new three.Color(this.palette.body),
+      roughness: 0.92,
+      metalness: 0.05,
+      depthWrite: true,
+    });
+
+    this.root?.add(new three.Mesh(geometry, material));
+    this.disposables.push(geometry, material);
+  }
+
+  /**
+   * The gold fresnel rim, and a wider, fainter haze outside it.
+   *
+   * Two shells rather than one: the tight shell is the lit horizon, the wide one
+   * is the glow bleeding off it. Together they do the job a bloom pass would,
+   * for two draw calls and no render targets.
+   */
+  private buildShells(three: typeof THREE): void {
+    const shells: [number, string, number, number][] = [
+      // radius, colour, falloff power (lower is wider), intensity
+      [ATMOSPHERE_RADIUS, this.palette.atmosphere, 2.1, 1.35],
+      [HAZE_RADIUS, this.palette.haze, 1.5, 0.32],
+    ];
+
+    for (const [radius, color, power, strength] of shells) {
+      const geometry = new three.SphereGeometry(radius, 64, 48);
+      const material = new three.ShaderMaterial({
+        vertexShader: SHELL_VERTEX,
+        fragmentShader: SHELL_FRAGMENT,
+        uniforms: {
+          uColor: { value: new three.Color(color) },
+          uPower: { value: power },
+          uStrength: { value: strength },
+        },
+        side: three.BackSide,
+        blending: three.AdditiveBlending,
+        transparent: true,
+        // Depth test stays on so the body occludes each shell's centre; depth
+        // write stays off so a shell never occludes anything itself.
+        depthWrite: false,
+      });
+
+      this.root?.add(new three.Mesh(geometry, material));
+      this.disposables.push(geometry, material);
+    }
+  }
+
+  /**
+   * The continents, as two point clouds.
+   *
+   * Density plus a small point size is what turns specks into legible landmass;
+   * splitting a bright minority out as city lights is what stops the result
+   * reading as uniform noise. Two draw calls for the whole planet.
+   */
+  private buildLand(three: typeof THREE): void {
+    const land = sampleLandPoints(LAND_SAMPLES);
+    const sprite = this.dotTexture;
+
+    const dim: number[] = [];
+    const bright: number[] = [];
+
+    land.forEach(({ lat, lon }, index) => {
+      const v = toVector(lat, lon, LAND_RADIUS);
+      // Deterministic rather than random: the same points light up on every load,
+      // so the globe has a stable identity instead of reshuffling per visit.
+      const target = index % Math.round(1 / CITY_SHARE) === 0 ? bright : dim;
+      target.push(v.x, v.y, v.z);
+    });
+
+    // The dim majority. Normal blending and an alpha test, so the continents
+    // read as land rather than as haze.
+    const dimGeometry = new three.BufferGeometry();
+    dimGeometry.setAttribute('position', new three.BufferAttribute(new Float32Array(dim), 3));
+    const dimMaterial = new three.PointsMaterial({
+      color: new three.Color(this.palette.land),
+      size: 0.011,
+      sizeAttenuation: true,
+      map: sprite,
+      transparent: true,
+      opacity: 0.95,
+      alphaTest: 0.35,
+      depthWrite: false,
+    });
+    this.root?.add(new three.Points(dimGeometry, dimMaterial));
+    this.disposables.push(dimGeometry, dimMaterial);
+
+    // The city lights, drawn twice off one geometry: once at true size and full
+    // opacity for the point itself, once at triple size and very low opacity for
+    // the halo around it. Two cheap additive passes stand in for a bloom pass.
+    const cityGeometry = new three.BufferGeometry();
+    cityGeometry.setAttribute('position', new three.BufferAttribute(new Float32Array(bright), 3));
+    this.disposables.push(cityGeometry);
+
+    const cityPasses: [number, number][] = [
+      [0.011, 1],
+      [0.033, 0.15],
+    ];
+
+    for (const [size, opacity] of cityPasses) {
+      const material = new three.PointsMaterial({
+        color: new three.Color(this.palette.city),
+        size,
+        sizeAttenuation: true,
+        map: sprite,
+        transparent: true,
+        opacity,
+        blending: three.AdditiveBlending,
+        depthWrite: false,
+      });
+
+      this.root?.add(new three.Points(cityGeometry, material));
+      this.disposables.push(material);
+    }
+  }
+
+  /**
+   * A soft round dot, drawn into a 2D canvas.
+   *
+   * PointsMaterial renders squares without one, and squares read as noise rather
+   * than as a network at this size.
+   */
+  private createDotTexture(three: typeof THREE): THREE.Texture | null {
+    const canvas = this.document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return null;
+    }
+
+    const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
+    gradient.addColorStop(0, 'rgba(255,255,255,1)');
+    gradient.addColorStop(0.55, 'rgba(255,255,255,0.95)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 32, 32);
+
+    const texture = new three.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  /**
+   * The network: arcs, a glowing node at every endpoint, and a pulse travelling
+   * along each arc.
+   */
+  private buildNetwork(three: typeof THREE): void {
+    const sprite = this.dotTexture;
+    const endpoints: GeoPoint[] = [];
+
+    ARC_ROUTES.forEach(([from, to], index) => {
+      endpoints.push(from, to);
+
+      const path = this.arcPath(three, from, to);
+      const geometry = new three.BufferGeometry().setFromPoints(path);
+      const material = new three.LineBasicMaterial({
+        color: new three.Color(this.palette.arc),
+        transparent: true,
+        opacity: 0,
+        blending: three.AdditiveBlending,
+        // Over the body, not occluded by it. The reference shows the network as
+        // a cage enveloping the globe, with the far side of each arc still
+        // visible through it, so the arcs opt out of the depth test entirely.
+        depthTest: false,
+        depthWrite: false,
+      });
+
+      const line = new three.Line(geometry, material);
+      line.renderOrder = 2;
+      this.root?.add(line);
+      this.disposables.push(geometry, material);
+      // Spread the phases so the network never pulses in unison.
+      this.arcs.push({ material, phase: index / ARC_ROUTES.length });
+
+      const pulseMaterial = new three.SpriteMaterial({
+        color: new three.Color(this.palette.node),
+        map: sprite,
+        transparent: true,
+        opacity: 0,
+        blending: three.AdditiveBlending,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const pulse = new three.Sprite(pulseMaterial);
+      pulse.renderOrder = 3;
+      pulse.scale.setScalar(0.05);
+      pulse.position.copy(path[0]);
+
+      this.root?.add(pulse);
+      this.disposables.push(pulseMaterial);
+      this.pulses.push({ sprite: pulse, material: pulseMaterial, path, phase: index / ARC_ROUTES.length });
+    });
+
+    // Every endpoint as one additive point cloud — one draw call for all of them.
+    const positions: number[] = [];
+    for (const point of endpoints) {
+      const v = toVector(point.lat, point.lon, LAND_RADIUS + 0.004);
+      positions.push(v.x, v.y, v.z);
+    }
+
+    const geometry = new three.BufferGeometry();
+    geometry.setAttribute('position', new three.BufferAttribute(new Float32Array(positions), 3));
+    const material = new three.PointsMaterial({
+      color: new three.Color(this.palette.node),
+      size: 0.032,
+      sizeAttenuation: true,
+      map: sprite,
+      transparent: true,
+      opacity: 0.9,
+      blending: three.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    this.root?.add(new three.Points(geometry, material));
+    this.disposables.push(geometry, material);
+  }
+
+  /**
+   * One arc, lifted off the surface so it leaves the ground at both ends and
+   * peaks in the middle. Same curve the SVG fallback draws.
+   */
+  private arcPath(three: typeof THREE, from: GeoPoint, to: GeoPoint): THREE.Vector3[] {
+    const a = toVector(from.lat, from.lon);
+    const b = toVector(to.lat, to.lon);
+    const points: THREE.Vector3[] = [];
+    const steps = 64;
+
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = a.x + (b.x - a.x) * t;
+      const y = a.y + (b.y - a.y) * t;
+      const z = a.z + (b.z - a.z) * t;
+      const length = Math.hypot(x, y, z) || 1;
+      // Renormalise back onto the sphere, then lift by a sine bump.
+      const lift = 1 + 0.17 * Math.sin(Math.PI * t);
+      points.push(new three.Vector3((x / length) * lift, (y / length) * lift, (z / length) * lift));
+    }
+
+    return points;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Loop
+  // ---------------------------------------------------------------------------
+
+  private readonly frame = (time: number): void => {
+    const renderer = this.renderer;
+    const scene = this.scene;
+    const camera = this.camera;
+    const root = this.root;
+    if (!renderer || !scene || !camera || !root) {
+      return;
+    }
+
+    // Clamped: after a pause, time jumps and an unclamped delta would spin the
+    // globe through a whole revolution in one frame.
+    const delta = this.lastFrame ? Math.min(0.05, (time - this.lastFrame) / 1000) : 0;
+    this.lastFrame = time;
+    this.elapsed += delta;
+
+    root.rotation.y += ROTATION_SPEED * delta;
+
+    // Ease toward the pointer rather than tracking it exactly, so the parallax
+    // trails the cursor instead of sticking to it.
+    this.offsetX += (this.targetX - this.offsetX) * Math.min(1, delta * 4);
+    this.offsetY += (this.targetY - this.offsetY) * Math.min(1, delta * 4);
+    root.position.set(this.offsetX, this.offsetY, 0);
+
+    for (const arc of this.arcs) {
+      // Triangle wave through a smoothstep: a slow swell in and out, held near
+      // zero for part of the cycle so arcs read as firing rather than throbbing.
+      const phase = (this.elapsed * 0.18 + arc.phase) % 1;
+      const wave = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
+      arc.material.opacity = wave * wave * (3 - 2 * wave) * 0.95;
+    }
+
+    for (const pulse of this.pulses) {
+      const progress = (this.elapsed * 0.22 + pulse.phase) % 1;
+      const index = Math.min(pulse.path.length - 1, Math.floor(progress * pulse.path.length));
+      pulse.sprite.position.copy(pulse.path[index]);
+      // Fades in as it leaves and out as it arrives, so nothing pops at the ends.
+      pulse.material.opacity = Math.sin(Math.PI * progress) * 0.85;
+    }
+
+    renderer.render(scene, camera);
+  };
+
+  private resume(): void {
+    if (this.running || this.destroyed || !this.renderer) {
+      return;
+    }
+    if (!this.inViewport || this.document.hidden) {
+      return;
+    }
+    this.running = true;
+    this.lastFrame = 0;
+    this.renderer.setAnimationLoop(this.frame);
+  }
+
+  private pause(): void {
+    if (!this.running) {
+      return;
+    }
+    this.running = false;
+    this.renderer?.setAnimationLoop(null);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Observers and listeners
+  // ---------------------------------------------------------------------------
+
+  private resize(): void {
+    const canvas = this.canvasRef().nativeElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    if (!width || !height || !this.renderer || !this.camera) {
+      return;
+    }
+
+    this.renderer.setSize(width, height, false);
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+  }
+
+  private watchResize(): void {
+    this.resizeObserver = new ResizeObserver(() => this.resize());
+    this.resizeObserver.observe(this.canvasRef().nativeElement);
+  }
+
+  /** Stop rendering when the hero scrolls away, and when the tab is backgrounded. */
+  private watchVisibility(): void {
+    this.viewportObserver = new IntersectionObserver(
+      ([entry]) => {
+        this.inViewport = entry.isIntersecting;
+        if (this.inViewport) {
+          this.resume();
+        } else {
+          this.pause();
+        }
+      },
+      { threshold: 0 },
+    );
+    this.viewportObserver.observe(this.canvasRef().nativeElement);
+
+    const onVisibility = () => (this.document.hidden ? this.pause() : this.resume());
+    this.document.addEventListener('visibilitychange', onVisibility);
+
+    const previous = this.detachListeners;
+    this.detachListeners = () => {
+      previous?.();
+      this.document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }
+
+  private watchPointer(): void {
+    const view = this.document.defaultView;
+    if (!view || view.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') {
+        return;
+      }
+      // -1 → 1 across the viewport.
+      this.pointer.x = (event.clientX / view.innerWidth) * 2 - 1;
+      this.pointer.y = (event.clientY / view.innerHeight) * 2 - 1;
+      this.updateParallaxTarget();
+    };
+
+    view.addEventListener('pointermove', onPointerMove, { passive: true });
+
+    const previous = this.detachListeners;
+    this.detachListeners = () => {
+      previous?.();
+      view.removeEventListener('pointermove', onPointerMove);
+    };
+  }
+
+  /**
+   * Convert the 8px parallax budget into world units.
+   *
+   * The conversion depends on the camera's field of view and the canvas height,
+   * so it is recomputed from the live values rather than hard-coded.
+   */
+  private updateParallaxTarget(): void {
+    const camera = this.camera;
+    const canvas = this.canvasRef().nativeElement;
+    if (!camera || !canvas.clientHeight) {
+      return;
+    }
+
+    const visibleHeight = 2 * Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.position.z;
+    const worldPerPixel = visibleHeight / canvas.clientHeight;
+    const budget = PARALLAX_PX * worldPerPixel;
+
+    // Negated: the globe drifts against the cursor, which reads as depth.
+    this.targetX = -this.pointer.x * budget;
+    this.targetY = this.pointer.y * budget;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Teardown
+  // ---------------------------------------------------------------------------
+
+  private fail(): void {
+    this.teardown();
+    this.failed.emit();
+  }
+
+  private teardown(): void {
+    this.pause();
+
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.viewportObserver?.disconnect();
+    this.viewportObserver = null;
+    this.detachListeners?.();
+    this.detachListeners = null;
+
+    for (const item of this.disposables) {
+      item.dispose();
+    }
+    this.disposables.length = 0;
+    this.arcs.length = 0;
+    this.pulses.length = 0;
+
+    // Releases the GPU context. Without it a few navigations exhaust the
+    // browser's context limit and every later globe fails to create one.
+    this.renderer?.dispose();
+    this.dotTexture = null;
+    this.renderer = null;
+    this.scene = null;
+    this.camera = null;
+    this.root = null;
+  }
+}

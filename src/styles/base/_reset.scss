@@ -1,0 +1,103 @@
+@use '../abstracts' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+
+  // Reserve the scrollbar track at all times, so locking body scroll for the
+  // mobile navigation panel cannot shift the page underneath it.
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+
+  // Anchored sections must not slide under the fixed header. The navbar shrinks
+  // on scroll, so this uses the taller of its two heights — landing a little low
+  // is correct, landing under the bar is not.
+  scroll-padding-top: calc(var(--bwg-nav-h) + var(--bwg-sp-4));
+
+  @include motion-reduce {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  min-height: 100svh;
+  background: var(--bwg-ink);
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-ui);
+  font-size: var(--bwg-fs-base);
+  font-weight: var(--bwg-fw-ui);
+  line-height: var(--bwg-lh-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  // The page itself must never scroll sideways; wide children scroll internally.
+  overflow-x: hidden;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+svg {
+  fill: none;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--bwg-selection-bg);
+  color: var(--bwg-selection-fg);
+}
+
+// Router outlet is a marker element; never let it affect layout.
+router-outlet {
+  display: none;
+}

@@ -1,0 +1,17 @@
+@use 'sass:math';
+
+/// A value that scales linearly with the viewport between two widths,
+/// clamped at both ends. Preferred over hand-written clamp() so the
+/// intent (min, max) stays readable.
+///
+/// @example fluid(32px, 72px) => clamp(32px, 2px + 5.45vw, 72px)
+@function fluid($min, $max, $from: 560px, $to: 1220px) {
+  $slope: math.div($max - $min, $to - $from);
+  $intercept: $min - $slope * $from;
+  @return clamp(#{$min}, #{$intercept} + #{$slope * 100vw}, #{$max});
+}
+
+/// Strip the unit from a value. Useful for unitless line-height maths.
+@function strip-unit($value) {
+  @return math.div($value, ($value * 0 + 1));
+}

@@ -1,0 +1,23 @@
+<section id="ecosystem" class="section">
+  <div class="section__inner">
+    <p class="eyebrow">{{ copy.eyebrow }}</p>
+    <h2 class="section__heading">{{ copy.heading }}</h2>
+    <p class="section__lead prose">{{ copy.lead }}</p>
+
+    <ul class="cards" role="list">
+      @for (item of copy.capabilities; track item.index) {
+        <li class="card">
+          <p class="card__index">{{ item.index }}</p>
+          <h3 class="card__title">{{ item.title }}</h3>
+          <p class="card__body">{{ item.body }}</p>
+        </li>
+      }
+    </ul>
+
+    <p class="ecosystem__closing">
+      @for (line of copy.closingLines; track line) {
+        <span>{{ line }}</span>
+      }
+    </p>
+  </div>
+</section>

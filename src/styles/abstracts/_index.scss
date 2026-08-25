@@ -1,0 +1,7 @@
+// Pure Sass only. Nothing in `abstracts/` emits a single byte of CSS, which is
+// what makes it safe to `@use 'abstracts' as *;` from every component stylesheet.
+// Anything that emits CSS belongs in `base/` and is included exactly once,
+// from `styles.scss`.
+@forward 'breakpoints';
+@forward 'functions';
+@forward 'mixins';

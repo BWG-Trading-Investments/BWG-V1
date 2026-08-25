@@ -1,0 +1,60 @@
+@use '../abstracts' as *;
+
+// Focus is shown for keyboard users only — never suppressed outright.
+:focus-visible {
+  @include focus-ring;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.visually-hidden {
+  @include visually-hidden;
+}
+
+// Bypass block. The app shell renders the trigger; this styles it.
+//
+// It sits off the top of the page until focused, then slides in. Positioned with
+// logical inset properties so RTL needs no override.
+.skip-link {
+  position: fixed;
+  inset-block-start: var(--bwg-sp-3);
+  inset-inline-start: var(--bwg-sp-3);
+  z-index: var(--bwg-z-skip);
+  padding: var(--bwg-sp-3) var(--bwg-sp-5);
+  background: var(--bwg-navy-soft);
+  border: 1px solid var(--bwg-rule-strong);
+  border-radius: var(--bwg-r);
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-ui);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+  text-transform: uppercase;
+  transform: translateY(calc(-100% - var(--bwg-sp-6)));
+  transition: transform var(--bwg-dur-fast) var(--bwg-ease-out);
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+// The <main> landmark takes tabindex="-1" so the skip link can move focus into
+// it. That must never draw a ring — the destination is a region, not a control.
+main:focus {
+  outline: none;
+}
+
+// Arabic strings appear inline throughout the copy and must carry lang/dir.
+[lang='ar'] {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+// Body scroll lock, applied by Navbar while the mobile panel is open. The panel
+// is a modal surface — the page behind it must not scroll away under it.
+// html { scrollbar-gutter: stable } in the reset keeps this from shifting layout.
+.bwg-scroll-locked {
+  overflow: hidden;
+}

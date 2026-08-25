@@ -1,0 +1,12 @@
+// =============================================================================
+// BWG — global stylesheet entry
+//
+// The only file listed in angular.json > styles. Order matters: tokens declare
+// the custom properties every rule below reads, so they land first.
+//
+// Component stylesheets pull in `abstracts` (which emits nothing) and never this
+// file. They read the tokens as plain CSS custom properties, which are global
+// by definition and need no import.
+// =============================================================================
+@use 'tokens';
+@use 'base';

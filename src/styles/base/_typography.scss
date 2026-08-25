@@ -1,0 +1,63 @@
+@use '../abstracts' as *;
+
+// Two families and nothing else. Cormorant Garamond carries the display voice,
+// Inter carries every piece of UI and body text. They are loaded in index.html;
+// the stacks in _tokens.scss name the fallbacks that stand in until they arrive.
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--bwg-font-display);
+  font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-snug);
+  letter-spacing: var(--bwg-tracking-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--bwg-fs-3xl);
+  line-height: var(--bwg-lh-tight);
+}
+
+h2 {
+  font-size: var(--bwg-fs-2xl);
+}
+
+h3 {
+  font-size: var(--bwg-fs-xl);
+  font-weight: var(--bwg-fw-display);
+}
+
+h4 {
+  font-size: var(--bwg-fs-lg);
+  font-weight: var(--bwg-fw-display);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  font-weight: var(--bwg-fw-ui-medium);
+}
+
+// The uppercase, wide-tracked small label used for eyebrows and section kickers.
+// It appears often enough to be worth naming once.
+.eyebrow {
+  font-family: var(--bwg-font-ui);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--bwg-text-muted);
+}
+
+// Long-form paragraphs stay inside a comfortable measure.
+.prose {
+  max-width: var(--bwg-measure);
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-relaxed);
+}

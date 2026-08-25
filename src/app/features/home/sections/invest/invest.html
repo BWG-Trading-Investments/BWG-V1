@@ -1,0 +1,25 @@
+<section id="invest" class="section">
+  <div class="section__inner">
+    <p class="eyebrow">{{ copy.eyebrow }}</p>
+    <h2 class="section__heading">{{ copy.heading }}</h2>
+    <p class="section__lead prose">{{ copy.lead }}</p>
+
+    <p class="eyebrow invest__label">{{ copy.approachLabel }}</p>
+    <ul class="invest__chain" role="list">
+      @for (item of copy.approach; track item; let last = $last) {
+        <li class="invest__link">
+          <span>{{ item }}</span>
+          @if (!last) {
+            <span class="invest__plus" aria-hidden="true">+</span>
+          }
+        </li>
+      }
+    </ul>
+    <p class="invest__chain-closing">{{ copy.approachClosing }}</p>
+
+    <p class="prose invest__body">{{ copy.body }}</p>
+
+    <p class="invest__closing">{{ copy.closing }}</p>
+    <a class="invest__cta" href="#contact">{{ copy.cta }}</a>
+  </div>
+</section>

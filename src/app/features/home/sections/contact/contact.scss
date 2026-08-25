@@ -1,0 +1,101 @@
+@use 'abstracts' as *;
+
+:host {
+  display: block;
+}
+
+.section {
+  @include section-shell;
+}
+
+.section__inner {
+  @include wrap;
+}
+
+.section__heading {
+  @include section-heading;
+}
+
+.section__lead {
+  margin-block-start: var(--bwg-sp-5);
+}
+
+.section__heading-line {
+  display: block;
+}
+
+.contact__heading {
+  margin-block-start: 0;
+}
+
+.contact__body {
+  display: grid;
+  gap: var(--bwg-sp-4);
+  margin-block-start: var(--bwg-sp-6);
+}
+
+.contact__closing {
+  margin-block-start: var(--bwg-sp-6);
+  color: var(--bwg-gold);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-xl);
+  font-weight: var(--bwg-fw-display-strong);
+}
+
+// Rendered as labels rather than links: the document lists them as the closing
+// calls to action, and there is no destination for them yet.
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bwg-sp-4);
+  margin: var(--bwg-sp-6) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: var(--bwg-sp-3) var(--bwg-sp-5);
+    border: 1px solid var(--bwg-rule-strong);
+    border-radius: var(--bwg-r);
+    color: var(--bwg-gold);
+    font-size: var(--bwg-fs-xs);
+    font-weight: var(--bwg-fw-ui-medium);
+    letter-spacing: var(--bwg-tracking-eyebrow);
+  }
+}
+
+.contact__details {
+  margin-block-start: var(--bwg-sp-9);
+  padding-block-start: var(--bwg-sp-6);
+  border-block-start: 1px solid var(--bwg-rule);
+  font-style: normal;
+}
+
+.contact__address span {
+  display: block;
+  color: var(--bwg-text);
+}
+
+.contact__meta {
+  display: grid;
+  gap: var(--bwg-sp-3);
+  margin-block-start: var(--bwg-sp-5);
+}
+
+.contact__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bwg-sp-2) var(--bwg-sp-4);
+
+  dt {
+    min-width: 9rem;
+    color: var(--bwg-text-muted);
+    font-size: var(--bwg-fs-sm);
+    letter-spacing: var(--bwg-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--bwg-text);
+  }
+}

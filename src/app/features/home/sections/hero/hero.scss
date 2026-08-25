@@ -1,0 +1,480 @@
+@use 'abstracts' as *;
+
+:host {
+  display: block;
+}
+
+// =============================================================================
+// Frame
+// =============================================================================
+.hero {
+  position: relative;
+  // svh, not vh: vh jumps when mobile browser chrome retracts.
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  // Tightened so the whole left column clears 100svh at 1280x800: the old
+  // sp-8 / sp-10 pair spent 188px on padding and pushed the buttons below the
+  // fold. See the stacking budget in the brief report.
+  padding-block: calc(var(--bwg-nav-h) + var(--bwg-sp-7)) var(--bwg-sp-9);
+  // Contains the globe's entrance, which starts 35% off the inline-end edge.
+  overflow: hidden;
+}
+
+// z0 — the only decoration on the page. Nothing else fills the empty space
+// around the globe, and that emptiness is the point.
+.hero__glow {
+  position: absolute;
+  inset: 0;
+  z-index: var(--bwg-z-base);
+  pointer-events: none;
+
+  // Three stops, all sized to the globe rather than to the section: a tight
+  // core directly behind the disc, a mid ring, and a wide falloff. Scaled to the
+  // section it washed the whole hero out and flattened the composition — keeping
+  // the surrounding space genuinely black is what lets the atmosphere rim read
+  // as the brightest thing on the page.
+  background:
+    radial-gradient(ellipse 15% 11% at 50% 58%, var(--bwg-glow-core) 0%, transparent 68%),
+    radial-gradient(ellipse 30% 22% at 50% 58%, var(--bwg-glow) 0%, transparent 70%),
+    radial-gradient(ellipse 52% 38% at 50% 58%, var(--bwg-glow) 0%, transparent 74%);
+
+  @include up('lg') {
+    background:
+      radial-gradient(ellipse 8% 14% at 74% 50%, var(--bwg-glow-core) 0%, transparent 68%),
+      radial-gradient(ellipse 16% 27% at 74% 50%, var(--bwg-glow) 0%, transparent 70%),
+      radial-gradient(ellipse 28% 47% at 74% 50%, var(--bwg-glow) 0%, transparent 74%);
+  }
+}
+
+.hero__inner {
+  @include wrap;
+
+  position: relative;
+  z-index: var(--bwg-z-copy);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-9);
+  align-items: center;
+
+  @include up('lg') {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: var(--bwg-sp-7);
+  }
+}
+
+// =============================================================================
+// Copy
+// =============================================================================
+.hero__mark {
+  height: 72px;
+  width: auto;
+  margin-block-end: var(--bwg-sp-5);
+}
+
+.hero__headline {
+  margin: 0;
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-display);
+  font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-solid);
+  letter-spacing: var(--bwg-tracking-tight);
+  text-wrap: nowrap;
+}
+
+.hero__line {
+  display: block;
+  // The mask the line rises out of.
+  overflow: hidden;
+  padding-block-end: 0.06em;
+}
+
+.hero__line-inner {
+  display: block;
+}
+
+.hero__line--gold {
+  color: var(--bwg-gold);
+}
+
+.hero__subline {
+  margin-block-start: var(--bwg-sp-5);
+  color: var(--bwg-gold);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-xl);
+  font-weight: var(--bwg-fw-display);
+  letter-spacing: var(--bwg-tracking-normal);
+}
+
+.hero__rule {
+  display: block;
+  width: 96px;
+  height: 1px;
+  margin-block: var(--bwg-sp-5);
+  background: var(--bwg-gold);
+}
+
+.hero__paragraph {
+  // The paragraph is 138 characters at roughly 0.5em average advance, so 69em of
+  // text. Three lines needs a measure between 23em and 34.5em; 28em sits in the
+  // middle of that band and cannot resolve to two lines or to four.
+  max-width: 28em;
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+.hero__tagline {
+  margin-block-start: var(--bwg-sp-5);
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bwg-sp-4);
+  margin-block-start: var(--bwg-sp-6);
+}
+
+.hero__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bwg-sp-2);
+  padding: var(--bwg-sp-4) var(--bwg-sp-6);
+  border: 1px solid var(--bwg-gold);
+  border-radius: var(--bwg-r);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  transition:
+    background var(--bwg-dur-base) var(--bwg-ease-out),
+    color var(--bwg-dur-base) var(--bwg-ease-out),
+    border-color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.hero__btn--filled {
+  background: var(--bwg-gold);
+  color: var(--bwg-ink);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--bwg-gold-bright);
+    border-color: var(--bwg-gold-bright);
+  }
+}
+
+.hero__btn--outline {
+  color: var(--bwg-gold);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--bwg-gold);
+    color: var(--bwg-ink);
+  }
+}
+
+// =============================================================================
+// Stage — globe and the five capability labels
+// =============================================================================
+.hero__stage {
+  position: relative;
+  // Reserves the globe's space before it loads, so nothing shifts on arrival.
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+
+  @include down('lg') {
+    // Below the desktop layout the labels leave the stage and stack, so the
+    // stage is the globe and nothing else.
+    max-width: 420px;
+  }
+}
+
+.hero__globe {
+  position: absolute;
+  inset: 0;
+  z-index: var(--bwg-z-globe);
+}
+
+.hero__labels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cap {
+  position: relative;
+}
+
+.cap__link {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bwg-sp-3);
+  padding: var(--bwg-sp-2);
+}
+
+.cap__icon {
+  flex: 0 0 auto;
+  color: var(--bwg-gold);
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.cap__body {
+  display: block;
+}
+
+.cap__label {
+  display: block;
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.cap__line {
+  display: block;
+  margin-block-start: 2px;
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-xs);
+  line-height: 1.45;
+}
+
+.cap__link:hover,
+.cap__link:focus-visible {
+  .cap__label {
+    color: var(--bwg-gold-bright);
+  }
+
+  .cap__icon {
+    color: var(--bwg-gold-bright);
+  }
+}
+
+// --- Stacked, below the desktop layout --------------------------------------
+.hero__labels {
+  display: grid;
+  gap: var(--bwg-sp-5);
+  margin-block-start: var(--bwg-sp-8);
+  grid-template-columns: minmax(0, 1fr);
+
+  @include between('md', 'lg') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// --- Positioned around the globe, at desktop --------------------------------
+@include up('lg') {
+  .hero__labels {
+    display: block;
+    margin-block-start: 0;
+  }
+
+  .cap {
+    position: absolute;
+    z-index: var(--bwg-z-copy);
+    // Sized so the widest slot cannot reach past the viewport at 1024px, where
+    // the stage column is only around 430px wide. It widens again at xl, where
+    // there is room for it.
+    width: 158px;
+  }
+
+  .cap[data-side='end'] {
+    text-align: end;
+
+    .cap__link {
+      flex-direction: row-reverse;
+    }
+  }
+
+  // Fixed percentage slots. They never move, because a label that drifts with
+  // the globe's rotation reads as a bug rather than as a flourish.
+  .cap[data-slot='upper-start'] {
+    inset-block-start: 4%;
+    inset-inline-start: -8%;
+  }
+
+  .cap[data-slot='upper-end'] {
+    inset-block-start: 0;
+    inset-inline-end: -6%;
+  }
+
+  .cap[data-slot='mid-end'] {
+    inset-block-start: 42%;
+    inset-inline-end: -10%;
+  }
+
+  .cap[data-slot='lower-start'] {
+    inset-block-start: 64%;
+    inset-inline-start: -10%;
+  }
+
+  .cap[data-slot='lower-end'] {
+    inset-block-start: 82%;
+    inset-inline-end: -4%;
+  }
+
+  // The connector hairline toward the globe's edge. CSS, not WebGL.
+  .cap::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 18px;
+    width: 30px;
+    height: 1px;
+    background: var(--bwg-gold-deep);
+  }
+
+  .cap[data-side='start']::after {
+    inset-inline-start: 100%;
+    transform-origin: var(--bwg-origin-inline-start) center;
+  }
+
+  .cap[data-side='end']::after {
+    inset-inline-end: 100%;
+    transform-origin: var(--bwg-origin-inline-end) center;
+  }
+}
+
+// From 1440px the column is wide enough to give the labels their full measure
+// and push them clear of the globe's limb.
+@include up('xl') {
+  .cap {
+    width: 184px;
+  }
+
+  .cap[data-slot='upper-start'] {
+    inset-inline-start: -16%;
+  }
+
+  .cap[data-slot='upper-end'] {
+    inset-inline-end: -14%;
+  }
+
+  .cap[data-slot='mid-end'] {
+    inset-inline-end: -18%;
+  }
+
+  .cap[data-slot='lower-start'] {
+    inset-inline-start: -18%;
+  }
+
+  .cap[data-slot='lower-end'] {
+    inset-inline-end: -12%;
+  }
+}
+
+// =============================================================================
+// Entrance timeline
+//
+// Gated on .bwg-js, which an inline script in index.html sets before first
+// paint. Without it — no JavaScript, or the raw prerendered HTML — none of these
+// rules apply and every element renders in its final, visible state. That is
+// what keeps the hero readable in the static HTML.
+//
+// Every delay and duration comes from the tokens, so the choreography is retimed
+// in one file rather than five.
+// =============================================================================
+:host-context(.bwg-js) {
+  @include motion-safe {
+    // 0ms — the glow fades up over 800ms.
+    .hero__glow {
+      animation: hero-fade var(--bwg-dur-glow) var(--bwg-ease-out) var(--bwg-delay-glow) both;
+    }
+
+    // 200ms — the globe drifts in from the inline-end edge over 1400ms.
+    .hero__globe {
+      animation: hero-globe-in var(--bwg-dur-globe) var(--bwg-ease-drift)
+        var(--bwg-delay-globe) both;
+    }
+
+    // 600ms — headline lines rise from their masks, 90ms apart.
+    .hero__line-inner {
+      animation: hero-rise var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(
+        var(--bwg-delay-headline) + var(--line-index, 0) * var(--bwg-stagger-headline)
+      );
+    }
+
+    // 900ms — subline, rule, paragraph, tagline, then the two buttons, 80ms apart.
+    .hero__reveal {
+      animation: hero-lift var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(
+        var(--bwg-delay-copy) + var(--copy-index, 0) * var(--bwg-stagger-copy)
+      );
+    }
+
+    // 1500ms — the labels slide in toward the globe, 120ms apart.
+    .cap {
+      animation: hero-cap-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(
+        var(--bwg-delay-labels) + var(--cap-index, 0) * var(--bwg-stagger-labels)
+      );
+    }
+
+    // Each connector draws after its own label has landed.
+    .cap::after {
+      animation: hero-connector var(--bwg-dur-slow) var(--bwg-ease-out) both;
+      animation-delay: calc(
+        var(--bwg-delay-labels) + var(--cap-index, 0) * var(--bwg-stagger-labels) +
+          var(--bwg-dur-base)
+      );
+    }
+  }
+}
+
+// Labels slide toward the globe, so each starts on its own side of it.
+.cap[data-side='start'] {
+  --cap-from: -20px;
+}
+
+.cap[data-side='end'] {
+  --cap-from: 20px;
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes hero-globe-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--bwg-enter-inline-end)) scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+@keyframes hero-lift {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes hero-cap-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--cap-from, 0));
+  }
+}
+
+@keyframes hero-connector {
+  from {
+    transform: scaleX(0);
+  }
+}

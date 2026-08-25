@@ -1,0 +1,22 @@
+<section id="why" class="section">
+  <div class="section__inner">
+    <p class="eyebrow">{{ copy.eyebrow }}</p>
+
+    <h2 class="section__heading">
+      @for (line of copy.headingLines; track line) {
+        <span class="section__heading-line">{{ line }}</span>
+      }
+    </h2>
+
+    <p class="section__lead prose">{{ copy.lead }}</p>
+
+    <ul class="cards" role="list">
+      @for (item of copy.reasons; track item.title) {
+        <li class="card">
+          <h3 class="card__title">{{ item.title }}</h3>
+          <p class="card__body">{{ item.body }}</p>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
