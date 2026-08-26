@@ -107,16 +107,6 @@
   text-transform: uppercase;
 }
 
-/// The responsive card grid the ecosystem, projects and why sections share.
-@mixin card-grid($min: 17rem) {
-  display: grid;
-  gap: var(--bwg-sp-6);
-  grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 /// Text clamped to a fixed number of lines.
 @mixin line-clamp($lines: 2) {
   display: -webkit-box;

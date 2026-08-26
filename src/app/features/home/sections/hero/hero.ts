@@ -65,9 +65,9 @@ interface Capability {
  * Positions are fixed percentages in the layout rather than projections of 3D
  * coordinates — projected labels drift as the globe turns, which reads as a bug.
  *
- * Technology, Trade and Marketing all point at #ecosystem because that is the
- * section that will hold the divisions; they get their own anchors when those
- * are built.
+ * Technology, Trade and Marketing all point at #ecosystem, the section that
+ * carries the six capabilities in full. They get their own anchors if those are
+ * ever split out into sections of their own.
  */
 const CAPABILITIES: readonly Capability[] = [
   {

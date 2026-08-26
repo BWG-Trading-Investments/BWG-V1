@@ -382,18 +382,18 @@
   @include motion-safe {
     // 0ms — the glow fades up over 800ms.
     .hero__glow {
-      animation: hero-fade var(--bwg-dur-glow) var(--bwg-ease-out) var(--bwg-delay-glow) both;
+      animation: bwg-fade-in var(--bwg-dur-glow) var(--bwg-ease-out) var(--bwg-delay-glow) both;
     }
 
     // 200ms — the globe drifts in from the inline-end edge over 1400ms.
     .hero__globe {
-      animation: hero-globe-in var(--bwg-dur-globe) var(--bwg-ease-drift)
+      animation: bwg-hero-globe-in var(--bwg-dur-globe) var(--bwg-ease-drift)
         var(--bwg-delay-globe) both;
     }
 
     // 600ms — headline lines rise from their masks, 90ms apart.
     .hero__line-inner {
-      animation: hero-rise var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation: bwg-hero-rise var(--bwg-dur-reveal) var(--bwg-ease-out) both;
       animation-delay: calc(
         var(--bwg-delay-headline) + var(--line-index, 0) * var(--bwg-stagger-headline)
       );
@@ -401,7 +401,7 @@
 
     // 900ms — subline, rule, paragraph, tagline, then the two buttons, 80ms apart.
     .hero__reveal {
-      animation: hero-lift var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation: bwg-hero-lift var(--bwg-dur-reveal) var(--bwg-ease-out) both;
       animation-delay: calc(
         var(--bwg-delay-copy) + var(--copy-index, 0) * var(--bwg-stagger-copy)
       );
@@ -409,7 +409,7 @@
 
     // 1500ms — the labels slide in toward the globe, 120ms apart.
     .cap {
-      animation: hero-cap-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation: bwg-hero-cap-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
       animation-delay: calc(
         var(--bwg-delay-labels) + var(--cap-index, 0) * var(--bwg-stagger-labels)
       );
@@ -417,7 +417,7 @@
 
     // Each connector draws after its own label has landed.
     .cap::after {
-      animation: hero-connector var(--bwg-dur-slow) var(--bwg-ease-out) both;
+      animation: bwg-hero-connector var(--bwg-dur-slow) var(--bwg-ease-out) both;
       animation-delay: calc(
         var(--bwg-delay-labels) + var(--cap-index, 0) * var(--bwg-stagger-labels) +
           var(--bwg-dur-base)
@@ -435,46 +435,3 @@
   --cap-from: 20px;
 }
 
-@keyframes hero-fade {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes hero-globe-in {
-  from {
-    opacity: 0;
-    transform: translateX(var(--bwg-enter-inline-end)) scale(0.86);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-@keyframes hero-rise {
-  from {
-    transform: translateY(110%);
-  }
-}
-
-@keyframes hero-lift {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
-
-@keyframes hero-cap-in {
-  from {
-    opacity: 0;
-    transform: translateX(var(--cap-from, 0));
-  }
-}
-
-@keyframes hero-connector {
-  from {
-    transform: scaleX(0);
-  }
-}

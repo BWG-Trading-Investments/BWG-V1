@@ -1,32 +1,132 @@
-<section id="about" class="section">
-  <div class="section__inner">
-    <p class="eyebrow">{{ copy.eyebrow }}</p>
-    <h2 class="section__heading">{{ copy.heading }}</h2>
+<section id="about" class="section" [class.is-revealed]="revealed()">
+  <div class="section__inner about__grid">
+    <div class="about__copy">
+      <p class="eyebrow about__reveal" style="--reveal-index: 0">{{ copy.eyebrow }}</p>
 
-    <div class="about__body">
-      @for (paragraph of copy.body; track paragraph) {
-        <p class="prose">{{ paragraph }}</p>
-      }
-      <p class="prose">{{ copy.combinationIntro }}</p>
+      <h2 class="about__headline about__reveal" style="--reveal-index: 1">
+        <span class="about__headline-lead">{{ copy.headingLead }}</span>
+        <span class="about__headline-accent">{{ copy.headingAccent }}</span>
+      </h2>
+
+      <p class="about__subhead about__reveal" style="--reveal-index: 2">{{ copy.subhead }}</p>
+
+      <span class="about__rule about__reveal" style="--reveal-index: 3" aria-hidden="true"></span>
+
+      <p class="about__para about__reveal" style="--reveal-index: 4">{{ copy.intro }}</p>
+
+      <p class="about__para about__reveal" style="--reveal-index: 5">
+        @for (segment of copy.strength; track $index) {
+          <span [class.about__accent]="segment.accent">{{ segment.text }}</span>
+        }
+      </p>
+
+      <p class="about__para about__reveal" style="--reveal-index: 6">{{ copy.isolation }}</p>
+
+      <!--
+        The six building blocks. Connectors are drawn from each item's own box in
+        CSS, and the row-leading item in each layout drops its connector by
+        position rather than by a hand-written class.
+      -->
+      <ul class="about__elements" role="list">
+        @for (block of copy.blocks; track block.label; let i = $index) {
+          <li class="about__element" [style.--reveal-order]="i">
+            <span class="about__element-disc" aria-hidden="true">
+              <svg
+                viewBox="0 0 20 20"
+                width="20"
+                height="20"
+                stroke="currentColor"
+                stroke-width="1.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                @switch (block.icon) {
+                  @case ('eye') {
+                    <path d="M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5-7.5-5-7.5-5Z" />
+                    <circle cx="10" cy="10" r="2.4" />
+                  }
+                  @case ('knight') {
+                    <path d="M6.6 16.6h7" />
+                    <path
+                      d="M13.2 16.6c.2-2.3.7-3.9.8-5.5.2-2.4-1.2-4.3-3.5-5l.7-2-2.6 1.4-2.2 1.6a2.8 2.8 0 0 0-1.1 2.2v1.5l2-1.1.8 1.2-2 1.8c-.4.8-.5 2.4-.5 3.9"
+                    />
+                  }
+                  @case ('people') {
+                    <circle cx="8" cy="7.6" r="2.4" />
+                    <path d="M3.6 15.4a4.4 4.4 0 0 1 8.8 0" />
+                    <path d="M13.6 6.2a2.4 2.4 0 0 1 0 4.6" />
+                    <path d="M14.6 12a4.4 4.4 0 0 1 2.2 3.4" />
+                  }
+                  @case ('chip') {
+                    <rect x="6" y="6" width="8" height="8" rx="1" />
+                    <rect x="8.75" y="8.75" width="2.5" height="2.5" />
+                    <path
+                      d="M8.5 6V3.2M11.5 6V3.2M8.5 14v2.8M11.5 14v2.8M6 8.5H3.2M6 11.5H3.2M14 8.5h2.8M14 11.5h2.8"
+                    />
+                  }
+                  @case ('handshake') {
+                    <path
+                      d="M10 7.6 12.1 5.5a1.9 1.9 0 0 1 2.7 0L17 7.7v4.4l-2.4 2.4a1.4 1.4 0 0 1-2 0L10 12.5"
+                    />
+                    <path
+                      d="M10 7.6 7.9 5.5a1.9 1.9 0 0 0-2.7 0L3 7.7v4.4l2.4 2.4a1.4 1.4 0 0 0 2 0L10 12.5"
+                    />
+                  }
+                  @case ('growth') {
+                    <path d="M3.4 16.6h13.2" />
+                    <path d="M6.2 16.6v-4" />
+                    <path d="M10 16.6v-6.4" />
+                    <path d="M13.8 16.6v-2.6" />
+                    <path d="M4.6 8.8 8.2 5.2l2.6 2.6 4.6-4.6" />
+                    <path d="M12.6 3.2h2.8V6" />
+                  }
+                }
+              </svg>
+            </span>
+            <span class="about__element-label">{{ block.label }}</span>
+          </li>
+        }
+      </ul>
+
+      <p class="about__closing about__reveal" style="--reveal-index: 7">{{ copy.closing }}</p>
     </div>
 
-    <ul class="about__pillars" role="list">
-      @for (item of copy.combination; track item) {
-        <li>{{ item }}</li>
+    <ul class="about__cards" role="list">
+      @for (card of copy.cards; track card.label; let i = $index) {
+        <li class="about__card" [style.--reveal-order]="cardOrder + i">
+          <span class="about__card-badge" aria-hidden="true">
+            <svg
+              viewBox="0 0 20 20"
+              width="20"
+              height="20"
+              stroke="currentColor"
+              stroke-width="1.25"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              @switch (card.icon) {
+                @case ('target') {
+                  <circle cx="10" cy="10" r="6.6" />
+                  <circle cx="10" cy="10" r="3.2" />
+                  <path d="M10 10 16.5 3.5" />
+                  <path d="M13.6 3.5H16.5V6.4" />
+                }
+                @case ('telescope') {
+                  <path d="M3.2 11.4 12.6 6l2 3.5-9.4 5.4z" />
+                  <path d="M13.6 7.7 16.4 6.1a1.2 1.2 0 0 1 1.6.5 1.2 1.2 0 0 1-.4 1.6l-2.8 1.6" />
+                  <path d="M7.6 13.2 9.4 16.4" />
+                  <path d="M4.6 14.9 6.2 17.6" />
+                }
+              }
+            </svg>
+          </span>
+
+          <div class="about__card-body">
+            <p class="about__card-label">{{ card.label }}</p>
+            <p class="about__card-text">{{ card.body }}</p>
+          </div>
+        </li>
       }
     </ul>
-
-    <p class="about__closing">{{ copy.combinationClosing }}</p>
-
-    <div class="about__statements">
-      <div class="about__statement">
-        <p class="eyebrow">{{ copy.missionLabel }}</p>
-        <blockquote class="about__quote">{{ copy.mission }}</blockquote>
-      </div>
-      <div class="about__statement">
-        <p class="eyebrow">{{ copy.visionLabel }}</p>
-        <blockquote class="about__quote">{{ copy.vision }}</blockquote>
-      </div>
-    </div>
   </div>
 </section>

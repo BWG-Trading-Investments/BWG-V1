@@ -1,37 +1,102 @@
-<section id="contact" class="section">
-  <div class="section__inner">
-    <h2 class="section__heading contact__heading">
-      @for (line of copy.headingLines; track line) {
-        <span class="section__heading-line">{{ line }}</span>
-      }
-    </h2>
+<section id="contact" class="section" [class.is-revealed]="revealed()">
+  <!--
+    Decorative only: a soft gold ground and a slow drift of motes. Nothing here
+    carries meaning, so none of it reaches the accessibility tree.
+  -->
+  <div class="ct__glow" aria-hidden="true"></div>
 
-    <div class="contact__body">
-      @for (paragraph of copy.body; track paragraph) {
-        <p class="prose">{{ paragraph }}</p>
-      }
+  <div class="ct__field" aria-hidden="true">
+    @for (mote of motes; track $index) {
+      <span
+        class="ct__mote"
+        [style.inset-inline-start.%]="mote.x"
+        [style.inset-block-start.%]="mote.y"
+        [style.width.px]="mote.size"
+        [style.height.px]="mote.size"
+        [style.--drift-rise.rem]="mote.rise"
+        [style.--drift-peak]="mote.peak"
+        [style.animation-delay.s]="mote.delay"
+        [style.animation-duration.s]="mote.duration"
+      ></span>
+    }
+  </div>
+
+  <div class="section__inner ct__grid">
+    <div class="ct__statement">
+      <p class="eyebrow ct__reveal" style="--reveal-index: 0">{{ copy.eyebrow }}</p>
+
+      <h2 class="ct__headline">
+        @for (line of copy.headingLines; track line; let i = $index) {
+          <span
+            class="ct__headline-line ct__reveal"
+            [class.ct__headline-line--gold]="i > 0"
+            [style.--reveal-index]="i + 1"
+            >{{ line }}</span
+          >
+        }
+      </h2>
+
+      <span class="ct__rule ct__reveal" style="--reveal-index: 3" aria-hidden="true"></span>
+
+      <p class="ct__body ct__reveal" style="--reveal-index: 4">{{ copy.body }}</p>
+
+      <p class="ct__closing ct__reveal" style="--reveal-index: 5">{{ copy.closing }}</p>
+
+      <ul class="ct__actions" role="list">
+        @for (action of actions; track action.label; let i = $index) {
+          <li class="ct__reveal" [style.--reveal-index]="i + 6">
+            @if (action.kind === 'anchor') {
+              <a
+                class="ct__action"
+                [class.ct__action--primary]="action.primary"
+                [href]="'#' + action.target"
+                (click)="onAnchor($event, action.target)"
+              >
+                {{ action.label }} <span aria-hidden="true">&rarr;</span>
+              </a>
+            } @else {
+              <a
+                class="ct__action"
+                [class.ct__action--primary]="action.primary"
+                [href]="'mailto:' + action.target"
+              >
+                {{ action.label }} <span aria-hidden="true">&rarr;</span>
+              </a>
+            }
+          </li>
+        }
+      </ul>
     </div>
 
-    <p class="contact__closing">{{ copy.closing }}</p>
+    <address class="ct__panel ct__reveal" style="--reveal-index: 9">
+      <div class="ct__block">
+        <p class="eyebrow ct__block-label">{{ copy.addressLabel }}</p>
+        <p class="ct__address">
+          @for (line of copy.addressLines; track line) {
+            <span>{{ line }}</span>
+          }
+        </p>
+      </div>
 
-    <ul class="contact__actions" role="list">
-      @for (action of copy.actions; track action) {
-        <li>{{ action }}</li>
-      }
-    </ul>
-
-    <address class="contact__details">
-      <p class="contact__address">
-        @for (line of copy.addressLines; track line) {
-          <span>{{ line }}</span>
-        }
-      </p>
-
-      <dl class="contact__meta">
-        @for (detail of copy.details; track detail.label) {
-          <div class="contact__row">
-            <dt>{{ detail.label }}</dt>
-            <dd>{{ detail.value }}</dd>
+      <dl class="ct__details">
+        @for (detail of details; track detail.label) {
+          <div class="ct__row">
+            <dt class="ct__row-label">{{ detail.label }}</dt>
+            <dd class="ct__row-value">
+              @if (detail.kind === 'external') {
+                <a
+                  class="ct__link"
+                  [href]="detail.href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ detail.value }}
+                  <span class="visually-hidden">Opens in a new tab</span>
+                </a>
+              } @else {
+                <a class="ct__link" [href]="detail.href">{{ detail.value }}</a>
+              }
+            </dd>
           </div>
         }
       </dl>

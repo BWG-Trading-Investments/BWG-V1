@@ -1,0 +1,177 @@
+// =============================================================================
+// ENTRANCE KEYFRAMES
+//
+// These live in the global layer rather than in the component stylesheets that
+// use them, and that is deliberate.
+//
+// Angular's emulated encapsulation rewrites a component's `@keyframes NAME` to a
+// scoped `_ngcontent-%COMP%_NAME`, and normally rewrites the `animation` /
+// `animation-name` that references it to match. It does NOT do that second
+// rewrite when the declaration sits inside an `@media` block. The definition
+// gets a scoped name, the reference keeps the plain one, they no longer match,
+// and the animation silently never runs — no error, no warning, the element just
+// sits in its static state.
+//
+// Every entrance on this site is guarded by prefers-reduced-motion, so every one
+// of them is inside a media block and every one of them would hit this. Declaring
+// the keyframes globally sidesteps the rewrite completely: there is one name, it
+// is never scoped, and the reference always resolves.
+//
+// If you add an entrance animation, add its keyframes here, not in the component.
+// =============================================================================
+
+/// A plain fade up from nothing.
+@keyframes bwg-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/// The standard reveal: fade while rising a short distance.
+@keyframes bwg-lift-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/// The hero's copy reveal. A shorter rise than bwg-lift-in, kept separate so the
+/// hero's timing is not changed by a tweak made for a section below it.
+@keyframes bwg-hero-lift {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/// The globe drifting in from the inline-end edge. The distance is a token so
+/// RTL can flip its sign; var() resolves against the animating element, so it
+/// still works from here.
+@keyframes bwg-hero-globe-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--bwg-enter-inline-end)) scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/// A headline line rising out of its clipping mask.
+@keyframes bwg-hero-rise {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+/// A capability label sliding in toward the globe. Direction comes from the
+/// element's own --cap-from.
+@keyframes bwg-hero-cap-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--cap-from, 0));
+  }
+}
+
+/// A connector hairline drawing out from its leading edge.
+@keyframes bwg-hero-connector {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/// A pulse travelling inward along a spoke, from a satellite to the centre.
+///
+/// Each spoke sits in a group rotated about the hub, so every pulse runs along
+/// its own local X axis and they all share this one keyframe. The distance comes
+/// from --pulse-travel, set on the diagram from the same geometry that places
+/// the nodes, so the pulse can never stop short of the hub or overshoot it.
+@keyframes bwg-pulse-inward {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(calc(var(--pulse-travel, 0px) * -1));
+    opacity: 0;
+  }
+}
+
+/// A particle carried once around an orbit. The element is a group whose
+/// transform-origin is the orbit centre, so one rotation walks the particle all
+/// the way round. Rotation only — it stays on the compositor.
+@keyframes bwg-orbit-travel {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/// A node drifting gently in place. Applied to an inner element, never to the
+/// one carrying the centring translate, so the two transforms cannot fight.
+@keyframes bwg-node-float {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/// A slow breath, for the glow behind the centre mark.
+@keyframes bwg-breathe {
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
+}
+
+/// A connection line brightening and settling again.
+@keyframes bwg-line-glow {
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/// A mote drifting slowly upward and fading at both ends.
+///
+/// Every particle shares this one keyframe; its rise, peak opacity, duration and
+/// delay come from custom properties set per element, so a field of them never
+/// moves in lockstep. translate3d keeps each one on its own compositor layer.
+@keyframes bwg-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: var(--drift-peak, 0.6);
+  }
+
+  82% {
+    opacity: var(--drift-peak, 0.6);
+  }
+
+  to {
+    transform: translate3d(0, var(--drift-rise, -3rem), 0);
+    opacity: 0;
+  }
+}
+
+/// A mark drifting a hair while its card is hovered.
+///
+/// Animates `translate`, not `transform`: the element already carries a
+/// translateZ that lifts it off the card face, and animating transform would
+/// replace that outright rather than compose with it.
+@keyframes bwg-mark-float {
+  50% {
+    translate: 0 -3px;
+  }
+}

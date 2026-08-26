@@ -3,14 +3,24 @@
 // The breakpoints this build actually needs, named after the widths the brief
 // requires the site to be tested at: 360, 768, 1024, 1440, 1920.
 //
-// Two of these carry real behaviour and are not arbitrary:
-//   md (768px)  — below it the hero skips WebGL and renders the SVG globe.
-//   lg (1024px) — below it the navbar collapses to the hamburger panel.
+// Three of these carry real behaviour and are not arbitrary:
+//   md (768px)   — below it the hero skips WebGL and renders the SVG globe.
+//   lg (1024px)  — below it the navbar collapses to the hamburger panel.
+//   wide (1280px) — below it the ecosystem diagram drops its satellite labels
+//                   and the six capabilities become a list instead.
+//
+// `wide` sits off the t-shirt scale on purpose: it marks a layout threshold, not
+// a device class, and renumbering lg/xl around it would silently move the
+// navbar's spacing breakpoint with it.
 $breakpoints: (
   'xs': 360px,
-  'sm': 560px,
+  // 640px, not 560: it is where a two-up grid of icon-and-label cells stops
+  // being cramped. Both the about section's building blocks and the
+  // partnerships grid step up here.
+  'sm': 640px,
   'md': 768px,
   'lg': 1024px,
+  'wide': 1280px,
   'xl': 1440px,
   'xxl': 1920px,
 ) !default;

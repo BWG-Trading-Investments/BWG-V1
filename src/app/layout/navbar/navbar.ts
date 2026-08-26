@@ -17,7 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 
-import { NAV_CTA, NAV_ITEMS, type NavItem } from '../../core/navigation';
+import { NAV_CTA, NAV_ITEMS, type NavItem, ownsSection } from '../../core/navigation';
 import { ScrollSpyService } from '../../core/scroll-spy.service';
 
 /** Applied to <body> while the mobile panel is open. Styled in base/_a11y.scss. */
@@ -170,7 +170,9 @@ export class Navbar {
     if (item.kind === 'route') {
       return this.currentUrl() === item.target ? 'page' : null;
     }
-    return this.activeId() === item.target ? 'location' : null;
+    // Which sections a link stands for is navigation.ts's business, not the
+    // navbar's — some links cover a run of sections rather than just one.
+    return ownsSection(item, this.activeId()) ? 'location' : null;
   }
 
   /** The current path, with any query string or fragment stripped. */

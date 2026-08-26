@@ -4,6 +4,9 @@
   display: block;
 }
 
+// =============================================================================
+// Frame
+// =============================================================================
 .section {
   @include section-shell;
 }
@@ -12,65 +15,97 @@
   @include wrap;
 }
 
-.section__heading {
-  @include section-heading;
-}
-
-.section__lead {
-  margin-block-start: var(--bwg-sp-5);
-}
-
-.invest__label {
-  margin-block-start: var(--bwg-sp-8);
-  color: var(--bwg-gold);
-}
-
-.invest__chain {
-  display: flex;
-  flex-wrap: wrap;
+.iv__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-8);
   align-items: center;
-  gap: var(--bwg-sp-3);
-  margin: var(--bwg-sp-5) 0 0;
-  padding: 0;
-  list-style: none;
+
+  @include up('lg') {
+    // Copy inline-start, orbit inline-end. The copy takes the larger share so
+    // the visual supports it rather than competing with it.
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--bwg-sp-9);
+  }
 }
 
-.invest__link {
-  display: flex;
-  align-items: center;
-  gap: var(--bwg-sp-3);
+// =============================================================================
+// Copy
+// =============================================================================
+.iv__copy {
+  max-width: 40rem;
+}
+
+.iv__headline {
+  margin-block-start: var(--bwg-sp-3);
   color: var(--bwg-text);
   font-family: var(--bwg-font-display);
-  font-size: var(--bwg-fs-lg);
-  font-weight: var(--bwg-fw-display);
+  font-size: var(--bwg-fs-3xl);
+  font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-tight);
+  letter-spacing: var(--bwg-tracking-tight);
+  text-transform: uppercase;
 }
 
-.invest__plus {
+.iv__subhead {
+  margin-block-start: var(--bwg-sp-4);
+  color: var(--bwg-gold);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-lg);
+  font-weight: var(--bwg-fw-display-strong);
+  letter-spacing: var(--bwg-tracking-wide);
+  text-transform: uppercase;
+}
+
+.iv__rule {
+  display: block;
+  width: 96px;
+  height: 1px;
+  margin-block: var(--bwg-sp-5);
+  background: var(--bwg-gold);
+}
+
+.iv__lead,
+.iv__body {
+  max-width: var(--bwg-measure);
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+.iv__approach-label {
+  margin-block-start: var(--bwg-sp-6);
   color: var(--bwg-gold);
 }
 
-.invest__chain-closing {
-  margin-block-start: var(--bwg-sp-4);
-  color: var(--bwg-text-muted);
+.iv__approach-closing {
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-relaxed);
 }
 
-.invest__body {
+.iv__body {
   margin-block-start: var(--bwg-sp-6);
 }
 
-.invest__closing {
-  margin-block-start: var(--bwg-sp-8);
+.iv__closing {
+  margin-block-start: var(--bwg-sp-7);
   color: var(--bwg-gold);
   font-family: var(--bwg-font-display);
   font-size: var(--bwg-fs-xl);
   font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-snug);
+  text-transform: uppercase;
 }
 
-.invest__cta {
+.iv__cta {
   display: inline-flex;
   align-items: center;
+  gap: var(--bwg-sp-2);
   margin-block-start: var(--bwg-sp-6);
-  padding: var(--bwg-sp-4) var(--bwg-sp-6);
+  padding: var(--bwg-sp-4) var(--bwg-sp-7);
   background: var(--bwg-gold);
   border: 1px solid var(--bwg-gold);
   border-radius: var(--bwg-r);
@@ -83,5 +118,326 @@
   &:hover,
   &:focus-visible {
     background: var(--bwg-gold-bright);
+    border-color: var(--bwg-gold-bright);
+  }
+}
+
+// =============================================================================
+// The orbit
+// =============================================================================
+.orbit__stage {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+  aspect-ratio: 1;
+}
+
+.orbit__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.orbit__ring {
+  fill: none;
+  stroke: var(--bwg-gold-deep);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.orbit__spoke {
+  stroke: var(--bwg-gold-deep);
+  stroke-width: 1;
+  opacity: 0.45;
+  transition: opacity var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.orbit__particle circle {
+  fill: var(--bwg-gold-bright);
+  opacity: 0.75;
+}
+
+.orbit__hub-glow {
+  fill: var(--bwg-glow-core);
+  stroke: none;
+  transform-origin: center;
+}
+
+.orbit__hub-ring {
+  fill: var(--bwg-navy-soft);
+  stroke: var(--bwg-gold);
+  stroke-width: 1.5;
+}
+
+.orbit__mark {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  display: block;
+
+  img {
+    height: 2.25rem;
+    width: auto;
+  }
+}
+
+// --- The five nodes -----------------------------------------------------------
+.orbit__nodes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.orbit__node {
+  // transform has no logical form, so the centring shift is a variable RTL flips
+  // rather than a hard-coded direction.
+  --node-shift: -50%;
+
+  position: absolute;
+  translate: var(--node-shift) -50%;
+}
+
+:host-context([dir='rtl']) .orbit__node {
+  --node-shift: 50%;
+}
+
+.orbit__btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+// The float lives on this inner element, never on the one carrying the centring
+// translate, so the two transforms cannot fight each other.
+.orbit__node-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bwg-sp-2);
+  width: 7rem;
+  transition:
+    transform var(--bwg-dur-base) var(--bwg-ease-out),
+    opacity var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.orbit__dot {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--bwg-rule-strong);
+  border-radius: var(--bwg-r-circle);
+  background: var(--bwg-ink);
+  color: var(--bwg-gold);
+  transition:
+    color var(--bwg-dur-base) var(--bwg-ease-out),
+    border-color var(--bwg-dur-base) var(--bwg-ease-out),
+    box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.orbit__label {
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+  line-height: 1.35;
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+// --- Highlight ----------------------------------------------------------------
+.orbit__btn.is-active {
+  .orbit__node-inner {
+    transform: scale(1.08);
+  }
+
+  .orbit__dot {
+    color: var(--bwg-gold-bright);
+    border-color: var(--bwg-gold);
+    box-shadow: 0 0 1.5rem rgb(var(--bwg-gold-rgb) / 28%);
+  }
+
+  .orbit__label {
+    color: var(--bwg-gold-bright);
+  }
+}
+
+.orbit__btn.is-dimmed .orbit__node-inner {
+  opacity: 0.4;
+}
+
+.orbit__spoke-group.is-active .orbit__spoke {
+  stroke: var(--bwg-gold-bright);
+  opacity: 1;
+}
+
+.orbit__spoke-group.is-dimmed .orbit__spoke {
+  opacity: 0.15;
+}
+
+// --- Readout ------------------------------------------------------------------
+.orbit__readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--bwg-sp-3);
+  // Reserves its own line so a highlight never nudges the layout.
+  min-height: 2.5rem;
+  margin-block-start: var(--bwg-sp-5);
+  text-align: center;
+}
+
+.orbit__readout-index {
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-sm);
+  letter-spacing: var(--bwg-tracking-wide);
+}
+
+.orbit__readout-text {
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-lg);
+  font-weight: var(--bwg-fw-display-strong);
+}
+
+.orbit__readout-rest {
+  max-width: 26rem;
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-xs);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+// =============================================================================
+// Partner cards
+// =============================================================================
+.iv__cards-label {
+  margin-block-start: var(--bwg-sp-9);
+  color: var(--bwg-gold);
+}
+
+.iv__cards {
+  @include scroll-x;
+
+  display: flex;
+  gap: var(--bwg-sp-5);
+  // Full-bleed track with the gutter recreated as padding, so cards can run to
+  // the viewport edge as they scroll instead of stopping short of it.
+  margin: var(--bwg-sp-5) 0 0;
+  padding: var(--bwg-sp-2) var(--bwg-gutter) var(--bwg-sp-4);
+  list-style: none;
+  scroll-snap-type: x proximity;
+
+  @include up('wide') {
+    // They all fit by this width, so the track stops behaving like a carousel.
+    @include wrap;
+
+    overflow-x: visible;
+    padding-block: var(--bwg-sp-2) var(--bwg-sp-4);
+  }
+}
+
+.iv__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bwg-sp-4);
+  flex: 0 0 15rem;
+  padding: var(--bwg-sp-6) var(--bwg-sp-5);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: var(--bwg-r);
+  // Transparent rather than filled, so the section's ground shows through.
+  background: rgb(var(--bwg-navy-rgb) / 45%);
+  scroll-snap-align: start;
+  transition:
+    transform var(--bwg-dur-base) var(--bwg-ease-out),
+    border-color var(--bwg-dur-base) var(--bwg-ease-out),
+    box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+
+  @include up('wide') {
+    flex: 1 1 0;
+  }
+
+  &.is-active {
+    border-color: var(--bwg-rule-strong);
+    box-shadow: 0 0 2rem rgb(var(--bwg-gold-rgb) / 16%);
+
+    @include motion-safe {
+      transform: translateY(-6px);
+    }
+
+    .iv__card-icon {
+      color: var(--bwg-gold-bright);
+    }
+  }
+}
+
+.iv__card-icon {
+  color: var(--bwg-gold);
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.iv__card-label {
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-snug);
+}
+
+// =============================================================================
+// Motion
+//
+// Idle motion is transform and opacity only, so it stays on the compositor.
+// Everything is inside motion-safe: under prefers-reduced-motion none of it is
+// declared, the orbit renders static, and the highlight interaction — which is
+// transitions and classes, not animation — still works.
+//
+// Keyframes live in styles/base/_animations.scss. Angular does not rewrite an
+// animation name referenced inside a @media block to match its scoped
+// @keyframes, so declaring them here would silently never run.
+// =============================================================================
+@include motion-safe {
+  // A full revolution takes the better part of a minute; the negative delay
+  // spaces the four particles evenly around the ring rather than starting them
+  // all at twelve o'clock.
+  .orbit__particle {
+    animation: bwg-orbit-travel var(--bwg-dur-orbit) linear infinite;
+    animation-delay: calc(var(--particle-offset, 0) * var(--bwg-dur-orbit) * -1);
+  }
+
+  .orbit__node-inner {
+    animation: bwg-node-float var(--bwg-dur-float) var(--bwg-ease) infinite;
+    animation-delay: calc(var(--node-index, 0) * var(--bwg-stagger-pulse));
+  }
+
+  // A highlighted node holds still, so the scale reads cleanly.
+  .orbit__btn.is-active .orbit__node-inner {
+    animation-play-state: paused;
+  }
+
+  .orbit__hub-glow {
+    animation: bwg-breathe var(--bwg-dur-breathe) var(--bwg-ease) infinite;
+  }
+
+  .orbit__spoke {
+    animation: bwg-line-glow var(--bwg-dur-pulse) var(--bwg-ease) infinite;
+    animation-delay: calc(var(--node-index, 0) * var(--bwg-stagger-pulse));
+  }
+
+  // Fails open: the finished state is the plain CSS default above — nothing
+  // hides an element. This only adds an animation that plays it in.
+  .is-revealed {
+    .iv__reveal {
+      animation: bwg-lift-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(var(--reveal-index, 0) * var(--bwg-stagger-copy));
+    }
+
+    .iv__card {
+      animation: bwg-lift-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(
+        var(--bwg-delay-orbit) + var(--card-index, 0) * var(--bwg-stagger-orbit)
+      );
+    }
   }
 }

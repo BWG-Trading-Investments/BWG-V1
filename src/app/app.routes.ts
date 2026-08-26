@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { HomePage } from './features/home/home.page';
 
 const SITE = 'BWG';
@@ -7,13 +8,13 @@ const SITE = 'BWG';
  * Home is imported eagerly — it is the landing route, so deferring it would only
  * add a round trip. Every other page is lazy.
  *
- * About, Our Ecosystem, Our Projects, Partnerships, Invest and Contact are
- * deliberately absent from this table: they are anchors on the homepage
- * (#about, #ecosystem, …), not routes. core/navigation.ts is the single source
- * of truth for those, and it is what the navbar renders from.
+ * Every navigation destination on this site is now an anchor on the homepage —
+ * About BWG, Our Ecosystem, Our Projects, Our Leaders, Partnerships, Invest and
+ * Contact are all sections, not routes. core/navigation.ts is the single source
+ * of truth for them, and it is what the navbar renders from.
  *
- * Only Our Leaders is a real route, and it keeps this repo's existing path name
- * — `leadership`, not `leaders`. The nav config bends to the route.
+ * What is left here is the homepage itself, the legal documents, and a redirect
+ * for the one path that used to be a page.
  */
 export const routes: Routes = [
   {
@@ -22,10 +23,14 @@ export const routes: Routes = [
     title: 'BWG — Business World Group | Build. Grow. Invest.',
   },
   {
+    // Our Leaders was a page of its own until it became a homepage section. This
+    // keeps every link already published — or indexed — landing on the content
+    // rather than on a 404. The fragment is what carries it to the right place:
+    // anchorScrolling is enabled in app.config.ts, so the router scrolls to
+    // #leaders once the homepage has rendered.
     path: 'leadership',
-    title: `Leadership — ${SITE}`,
-    loadComponent: () =>
-      import('./features/leadership/leadership.page').then((m) => m.LeadershipPage),
+    pathMatch: 'full',
+    redirectTo: () => inject(Router).parseUrl('/#leaders'),
   },
   {
     path: 'legal/:doc',

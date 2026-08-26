@@ -1,22 +1,199 @@
-<section id="partnerships" class="section">
-  <div class="section__inner">
-    <p class="eyebrow">{{ copy.eyebrow }}</p>
-    <h2 class="section__heading">{{ copy.heading }}</h2>
+<section
+  id="partnerships"
+  class="section"
+  [class.is-revealed]="revealed()"
+  [class.is-paused]="!inView()"
+>
+  <div class="section__inner pt__grid-outer">
+    <div class="pt__header">
+        <p class="eyebrow pt__reveal" style="--reveal-index: 0">{{ copy.eyebrow }}</p>
 
-    <div class="partnerships__body">
-      @for (paragraph of copy.body; track paragraph) {
-        <p class="prose">{{ paragraph }}</p>
-      }
+        <h2 class="pt__headline pt__reveal" style="--reveal-index: 1">
+          <span class="pt__headline-lead">{{ copy.headingLead }}</span>
+          <span class="pt__headline-accent">{{ copy.headingAccent }}</span>
+        </h2>
+
+        <p class="pt__subhead pt__reveal" style="--reveal-index: 2">
+          @for (line of copy.subheadLines; track line) {
+            <span class="pt__subhead-line">{{ line }}</span>
+          }
+        </p>
+
+        <span class="pt__rule pt__reveal" style="--reveal-index: 3" aria-hidden="true"></span>
+
+        @for (paragraph of copy.paragraphs; track paragraph; let i = $index) {
+          <p class="pt__para pt__reveal" [style.--reveal-index]="i + 4">{{ paragraph }}</p>
+        }
     </div>
 
-    <p class="eyebrow partnerships__label">{{ copy.partnerToLabel }}</p>
-    <ul class="partnerships__list" role="list">
-      @for (item of copy.partnerTo; track item) {
-        <li>{{ item }}</li>
-      }
-    </ul>
+    <!--
+      The convergence diagram. Decorative: every label it stands for is real text
+      in the list beside it, so the graphic carries no information of its own and
+      needs no place in the accessibility tree.
+    -->
+    <div class="pt__diagram" aria-hidden="true">
+      <div class="pt__diagram-inner">
+        <svg class="pt__canvas" [attr.viewBox]="viewBox" [style.--pulse-travel]="pulseTravel">
+          <circle class="pt__ring" [attr.cx]="cx" [attr.cy]="cy" [attr.r]="ringRadius" />
 
-    <p class="partnerships__closing">{{ copy.closing }}</p>
-    <a class="partnerships__cta" href="#contact">{{ copy.cta }}</a>
+          <!--
+            Each spoke is drawn flat along the X axis and its group rotated into
+            place, which is what lets all six pulses share one keyframe and one
+            travel distance.
+          -->
+          @for (node of nodes; track node.label; let i = $index) {
+            <g
+              class="pt__spoke-group"
+              [class.is-active]="isActive(node.label)"
+              [class.is-dimmed]="isDimmed(node.label)"
+              [attr.transform]="'rotate(' + node.angle + ' ' + cx + ' ' + cy + ')'"
+            >
+              <line
+                class="pt__spoke"
+                [attr.x1]="spokeStart"
+                [attr.y1]="cy"
+                [attr.x2]="spokeEnd"
+                [attr.y2]="cy"
+              />
+              <circle
+                class="pt__pulse"
+                [style.--node-index]="i"
+                [attr.cx]="spokeEnd"
+                [attr.cy]="cy"
+                r="3.5"
+              />
+            </g>
+          }
+
+          <circle class="pt__hub-ring" [attr.cx]="cx" [attr.cy]="cy" [attr.r]="hubRadius" />
+
+          @for (node of nodes; track node.label) {
+            <g
+              class="pt__node"
+              [class.is-active]="isActive(node.label)"
+              [class.is-dimmed]="isDimmed(node.label)"
+              (mouseenter)="setActive(node.label)"
+              (mouseleave)="setActive(null)"
+            >
+              <circle
+                class="pt__node-disc"
+                [attr.cx]="node.x"
+                [attr.cy]="node.y"
+                [attr.r]="nodeRadius"
+              />
+              <g class="pt__node-icon" [attr.transform]="node.iconTransform">
+                <ng-container
+                  [ngTemplateOutlet]="glyph"
+                  [ngTemplateOutletContext]="{ $implicit: node.icon }"
+                />
+              </g>
+            </g>
+          }
+        </svg>
+
+        <!--
+          The BWG mark sits over the hub rather than inside the SVG, so the raster
+          asset is never scaled by the viewBox.
+        -->
+        <span class="pt__mark">
+          <img
+            src="/assets/bwg-logo-v2.png"
+            alt=""
+            width="42"
+            height="48"
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+      </div>
+    </div>
+
+    <div class="pt__aims">
+      <p class="eyebrow pt__label pt__reveal" style="--reveal-index: 6">{{ copy.gridLabel }}</p>
+
+      <!--
+        Separated by rules alone. Every cell carries only its inline-start and
+        block-start hairline, so there is never a trailing rule on the last cell
+        of a row and never an outer border around the grid.
+
+        Each item is focusable so the cross-highlight is reachable on Tab, and
+        takes a click so it is reachable by tap. Hover is never the only route.
+      -->
+      <ul class="pt__grid" role="list">
+        @for (aim of aims; track aim.label; let i = $index) {
+          <li
+            class="pt__item"
+            tabindex="0"
+            [style.--item-index]="i"
+            [class.is-active]="isActive(aim.label)"
+            [class.is-dimmed]="isDimmed(aim.label)"
+            (mouseenter)="setActive(aim.label)"
+            (mouseleave)="setActive(null)"
+            (focus)="setActive(aim.label)"
+            (blur)="setActive(null)"
+            (click)="setActive(aim.label)"
+          >
+            <span class="pt__icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 20 20"
+                width="28"
+                height="28"
+                stroke="currentColor"
+                stroke-width="1.25"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <ng-container [ngTemplateOutlet]="glyph" [ngTemplateOutletContext]="{ $implicit: aim.icon }" />
+              </svg>
+            </span>
+            <span class="pt__item-label">{{ aim.label }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+
   </div>
+
 </section>
+
+<!--
+  One set of glyphs, drawn into both the list and the diagram, so an item and its
+  satellite can never end up with different icons.
+-->
+<ng-template #glyph let-icon>
+  @switch (icon) {
+    @case ('globe') {
+      <svg:circle cx="10" cy="10" r="7" />
+      <svg:path d="M10 3c1.9 2 2.9 4.4 2.9 7s-1 5-2.9 7c-1.9-2-2.9-4.4-2.9-7s1-5 2.9-7Z" />
+      <svg:path d="M3.3 8h13.4M3.3 12h13.4" />
+    }
+    @case ('cube') {
+      <svg:path d="M10 3.2 16.6 6.8v6.4L10 16.8 3.4 13.2V6.8z" />
+      <svg:path d="M3.4 6.8 10 10.4l6.6-3.6" />
+      <svg:path d="M10 10.4v6.4" />
+    }
+    @case ('nodes') {
+      <svg:circle cx="5" cy="6" r="1.8" />
+      <svg:circle cx="15" cy="6" r="1.8" />
+      <svg:circle cx="10" cy="14.6" r="1.8" />
+      <svg:path d="M6.8 6h6.4" />
+      <svg:path d="M6 7.6 9 13" />
+      <svg:path d="M14 7.6 11 13" />
+    }
+    @case ('bars') {
+      <svg:path d="M3.4 16.6h13.2" />
+      <svg:path d="M6.2 16.6V9.4" />
+      <svg:path d="M10 16.6V5.8" />
+      <svg:path d="M13.8 16.6v-4.6" />
+    }
+    @case ('handshake') {
+      <svg:path d="M10 7.6 12.1 5.5a1.9 1.9 0 0 1 2.7 0L17 7.7v4.4l-2.4 2.4a1.4 1.4 0 0 1-2 0L10 12.5" />
+      <svg:path d="M10 7.6 7.9 5.5a1.9 1.9 0 0 0-2.7 0L3 7.7v4.4l2.4 2.4a1.4 1.4 0 0 0 2 0L10 12.5" />
+    }
+    @case ('trend') {
+      <svg:path d="M3.4 16.8h13.2" />
+      <svg:path d="M3.4 13.8 8 9.2l3 3 5.2-5.2" />
+      <svg:path d="M12.8 7h3.8v3.8" />
+    }
+  }
+</ng-template>

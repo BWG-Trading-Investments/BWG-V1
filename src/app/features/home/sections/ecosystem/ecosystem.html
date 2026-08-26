@@ -1,23 +1,130 @@
-<section id="ecosystem" class="section">
-  <div class="section__inner">
-    <p class="eyebrow">{{ copy.eyebrow }}</p>
-    <h2 class="section__heading">{{ copy.heading }}</h2>
-    <p class="section__lead prose">{{ copy.lead }}</p>
+<section id="ecosystem" class="section" [class.is-revealed]="revealed()">
+  <div class="section__inner eco__grid">
+    <div class="eco__copy">
+      <h2 class="eco__headline eco__reveal" style="--reveal-index: 0">{{ copy.heading }}</h2>
 
-    <ul class="cards" role="list">
-      @for (item of copy.capabilities; track item.index) {
-        <li class="card">
-          <p class="card__index">{{ item.index }}</p>
-          <h3 class="card__title">{{ item.title }}</h3>
-          <p class="card__body">{{ item.body }}</p>
-        </li>
-      }
-    </ul>
+      <p class="eco__subhead eco__reveal" style="--reveal-index: 1">{{ copy.subhead }}</p>
 
-    <p class="ecosystem__closing">
-      @for (line of copy.closingLines; track line) {
-        <span>{{ line }}</span>
-      }
-    </p>
+      <p class="eco__lead eco__reveal" style="--reveal-index: 2">
+        <span>{{ copy.leadLead }}</span><span class="eco__accent">{{ copy.leadAccent }}</span
+        ><span>.</span>
+      </p>
+    </div>
+
+    <div class="eco__diagram">
+      <div class="eco__ring">
+        <!--
+          Decorative: every word in the diagram is real text in the capability
+          list, so the graphic carries no information of its own.
+        -->
+        <svg class="eco__canvas" [attr.viewBox]="viewBox" aria-hidden="true">
+          <circle
+            class="eco__orbit"
+            [attr.cx]="cx"
+            [attr.cy]="cy"
+            [attr.r]="orbitRadius"
+            [style.--orbit-length]="orbitLength"
+          />
+
+          @for (node of nodes; track node.index; let i = $index) {
+            <line
+              class="eco__spoke"
+              [style.--node-index]="i"
+              [attr.x1]="node.spokeX1"
+              [attr.y1]="node.spokeY1"
+              [attr.x2]="node.spokeX2"
+              [attr.y2]="node.spokeY2"
+            />
+          }
+
+          <circle class="eco__hub-ring" [attr.cx]="cx" [attr.cy]="cy" [attr.r]="hubRadius" />
+
+          @for (node of nodes; track node.index; let i = $index) {
+            <g class="eco__node" [style.--node-index]="i">
+              <circle
+                class="eco__node-disc"
+                [attr.cx]="node.x"
+                [attr.cy]="node.y"
+                [attr.r]="nodeRadius"
+              />
+              <g class="eco__node-icon" [attr.transform]="node.iconTransform">
+                @switch (node.icon) {
+                  @case ('globe') {
+                    <circle cx="10" cy="10" r="7" />
+                    <path d="M10 3c1.9 2 2.9 4.4 2.9 7s-1 5-2.9 7c-1.9-2-2.9-4.4-2.9-7s1-5 2.9-7Z" />
+                    <path d="M3.3 8h13.4M3.3 12h13.4" />
+                  }
+                  @case ('chip') {
+                    <rect x="6" y="6" width="8" height="8" rx="1" />
+                    <rect x="8.75" y="8.75" width="2.5" height="2.5" />
+                    <path
+                      d="M8.5 6V3.2M11.5 6V3.2M8.5 14v2.8M11.5 14v2.8M6 8.5H3.2M6 11.5H3.2M14 8.5h2.8M14 11.5h2.8"
+                    />
+                  }
+                  @case ('megaphone') {
+                    <path
+                      d="M13.2 5.2 6.6 8.4H4.4A1.4 1.4 0 0 0 3 9.8v.4a1.4 1.4 0 0 0 1.4 1.4h2.2l6.6 3.2z"
+                    />
+                    <path d="M15.6 8.4a2.8 2.8 0 0 1 0 3.2" />
+                    <path d="M6.8 11.8v2.6a1.5 1.5 0 0 0 3 0v-1.2" />
+                  }
+                  @case ('growth') {
+                    <path d="M3.4 16.6h13.2" />
+                    <path d="M6.2 16.6v-4" />
+                    <path d="M10 16.6v-6.4" />
+                    <path d="M13.8 16.6v-2.6" />
+                    <path d="M4.6 8.8 8.2 5.2l2.6 2.6 4.6-4.6" />
+                    <path d="M12.6 3.2h2.8V6" />
+                  }
+                  @case ('seedling') {
+                    <path d="M10 16.6v-6.2" />
+                    <path d="M10 10.4C10 7.6 7.7 5.3 4.9 5.3c0 2.8 2.3 5.1 5.1 5.1Z" />
+                    <path d="M10 12.6c0-2.4 2-4.4 4.4-4.4 0 2.4-2 4.4-4.4 4.4Z" />
+                  }
+                  @case ('factory') {
+                    <path d="M3.4 16.6V9.4l4.4 2.6V9.4l4.4 2.6V6.6h4.4v10z" />
+                    <path d="M14.2 13.4h1.4M14.2 10.4h1.4" />
+                  }
+                }
+              </g>
+            </g>
+          }
+        </svg>
+
+        <!--
+          The BWG mark sits over the hub ring rather than inside the SVG, so the
+          raster asset is never scaled by the viewBox.
+        -->
+        <span class="eco__mark">
+          <img
+            src="/assets/bwg-logo-v2.png"
+            alt="BWG — Business World Group"
+            width="42"
+            height="48"
+            decoding="async"
+          />
+        </span>
+      </div>
+
+      <!--
+        One list, three layouts: satellites around the ring from 1280px, a
+        two-column list from 1024px, and stacked cards below that.
+      -->
+      <ul class="eco__capabilities" role="list">
+        @for (node of nodes; track node.index; let i = $index) {
+          <li
+            class="eco__capability"
+            [attr.data-side]="node.side"
+            [style.--node-index]="i"
+            [style.--inset-inline]="node.insetInline + '%'"
+            [style.--inset-block]="node.insetBlock + '%'"
+          >
+            <p class="eco__index">{{ node.index }}</p>
+            <h3 class="eco__title">{{ node.title }}</h3>
+            <p class="eco__body">{{ node.body }}</p>
+          </li>
+        }
+      </ul>
+    </div>
   </div>
 </section>

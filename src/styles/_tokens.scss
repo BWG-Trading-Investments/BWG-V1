@@ -62,6 +62,10 @@
   // Neutral hairline, for structure that should not read as gold.
   --bwg-hairline: rgb(var(--bwg-text-rgb) / 8%);
 
+  // A light plate, for artwork that arrives on an opaque white background and
+  // would otherwise read as a slab — or vanish — against the dark surfaces.
+  --bwg-plate: #f4f2ed;
+
   // The hero's radial glow behind the globe. Tight and dark — it sits behind the
   // globe's disc rather than washing the section, which is what lets the
   // atmosphere rim read as the brightest thing on the page.
@@ -190,6 +194,10 @@
   // stops rather than snapping.
   --bwg-ease-drift: cubic-bezier(0.22, 1, 0.36, 1);
 
+  // Overshoots slightly before settling, so a tilt released by the pointer eases
+  // past rest and back rather than stopping dead on it.
+  --bwg-ease-back: cubic-bezier(0.34, 1.4, 0.64, 1);
+
   // ---------------------------------------------------------------------------
   // Motion — durations
   // ---------------------------------------------------------------------------
@@ -222,6 +230,18 @@
   // beside it to land before its nodes start arriving.
   --bwg-delay-orbit: 320ms;
   --bwg-stagger-orbit: 90ms;
+
+  // The partnerships diagram: how long a pulse takes to travel a spoke, and how
+  // far apart the six are fired so they never converge in unison.
+  --bwg-dur-pulse: 2500ms;
+  --bwg-stagger-pulse: 420ms;
+
+  // The invest orbit. Deliberately slow: a full revolution takes the better part
+  // of a minute, so the motion registers as alive without ever pulling the eye
+  // away from the copy beside it.
+  --bwg-dur-orbit: 48s;
+  --bwg-dur-float: 7s;
+  --bwg-dur-breathe: 5s;
 
   // ---------------------------------------------------------------------------
   // Layout

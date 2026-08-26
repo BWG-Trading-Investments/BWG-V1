@@ -4,6 +4,9 @@
   display: block;
 }
 
+// =============================================================================
+// Frame
+// =============================================================================
 .section {
   @include section-shell;
 }
@@ -12,53 +15,420 @@
   @include wrap;
 }
 
-.section__heading {
-  @include section-heading;
+// =============================================================================
+// Header
+// =============================================================================
+.projects__header {
+  max-width: 46rem;
 }
 
-.section__lead {
-  margin-block-start: var(--bwg-sp-5);
+.projects__headline {
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-3xl);
+  font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-tight);
+  letter-spacing: var(--bwg-tracking-tight);
+  text-transform: uppercase;
 }
 
-.section__heading-line {
-  display: block;
-}
-
-.cards {
-  @include card-grid;
-
-  margin-block-start: var(--bwg-sp-8);
-}
-
-.card {
-  padding: var(--bwg-sp-5);
-  border: 1px solid var(--bwg-hairline);
-  border-radius: var(--bwg-r);
-  background: var(--bwg-navy-soft);
-}
-
-.card__title {
+.projects__subhead {
+  margin-block-start: var(--bwg-sp-4);
   color: var(--bwg-gold);
   font-family: var(--bwg-font-display);
   font-size: var(--bwg-fs-lg);
   font-weight: var(--bwg-fw-display-strong);
-  letter-spacing: var(--bwg-tracking-normal);
+  letter-spacing: var(--bwg-tracking-wide);
+  text-transform: uppercase;
 }
 
-.card__body {
-  margin-block-start: var(--bwg-sp-3);
+.projects__lead {
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-5);
   color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-md);
   line-height: var(--bwg-lh-relaxed);
 }
 
-.projects__closing {
-  margin-block-start: var(--bwg-sp-8);
-  color: var(--bwg-gold);
-  font-family: var(--bwg-font-display);
-  font-size: var(--bwg-fs-xl);
-  font-weight: var(--bwg-fw-display);
+// =============================================================================
+// Grid
+// =============================================================================
+.projects__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-6);
+  margin: var(--bwg-sp-8) 0 0;
+  padding: 0;
+  list-style: none;
 
-  span {
-    display: block;
+  @include up('lg') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include up('wide') {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+// =============================================================================
+// The card, and its pointer-tracked tilt
+//
+// The grid stretches its items, and the card fills that height, so every card in
+// a row still ends level however long its body runs — none of what follows
+// changes the space a card occupies.
+//
+// The directive on the <li> writes four numbers and nothing else: --px and --py
+// for the pointer offset from the centre, --mx and --my for its position. Every
+// decision about how far anything moves is made here, which is what lets the
+// effect be dialled down per device without touching the TypeScript.
+//
+// --tilt-max is the whole control. 6deg on a desktop, 3deg on a tablet, and 0 on
+// anything without a hovering pointer, where the maths still runs but resolves
+// to no rotation at all.
+// =============================================================================
+.project {
+  --mark-size: 5.75rem;
+  --tilt-max: 12deg;
+  --card-z: 0px;
+  --card-lift: 0px;
+  --media-z: 0px;
+
+  display: flex;
+  // The vanishing point for the card inside. Generous, so the rotation reads as
+  // a gentle turn rather than a fisheye.
+  perspective: 60rem;
+
+  // A tablet gets the same effect at half strength.
+  @include between('md', 'lg') {
+    --tilt-max: 6deg;
+  }
+
+  // No hovering pointer, or motion is unwelcome: no rotation, no depth, no
+  // sweep. The card keeps its plain resting state.
+  @include touch {
+    --tilt-max: 0deg;
+  }
+
+  @include motion-reduce {
+    --tilt-max: 0deg;
+  }
+}
+
+.project__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: var(--bwg-sp-5);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: var(--bwg-r);
+  background: var(--bwg-navy-soft);
+  // The viewing frustum for the slot, with its vanishing point placed over the
+  // slot rather than the middle of the card — otherwise a 92px square sitting in
+  // the top corner would shear rather than turn.
+  perspective: 30rem;
+  perspective-origin:
+    calc(var(--bwg-sp-5) + var(--mark-size) / 2)
+    calc(var(--bwg-sp-5) + var(--mark-size) / 2);
+
+  // The card itself no longer rotates — only lifts and comes forward. The turn
+  // belongs to the mark, and two rotations compounding read as a wobble.
+  transform: translate3d(0, var(--card-lift), 0) translateZ(var(--card-z));
+
+  @include motion-safe {
+    transition:
+      transform var(--bwg-dur-slow) var(--bwg-ease-out),
+      border-color var(--bwg-dur-base) var(--bwg-ease-out),
+      box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+  }
+}
+
+// While the pointer is on the card the transform follows it closely; the longer
+// easing above is what carries the card home when the pointer leaves, so it
+// settles rather than snapping back.
+.project.is-tilting .project__inner {
+  @include motion-safe {
+    transition:
+      transform var(--bwg-dur-fast) linear,
+      border-color var(--bwg-dur-base) var(--bwg-ease-out),
+      box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+  }
+}
+
+// Depth and a low gold bloom, as if light were catching a physical surface.
+.project:hover .project__inner {
+  --card-z: 0.75rem;
+  --media-z: 1.75rem;
+
+  box-shadow: 0 1.25rem 2.5rem rgb(var(--bwg-ink-rgb) / 45%),
+    0 0 2rem rgb(var(--bwg-gold-rgb) / 12%);
+}
+
+// The light sweep. A soft pool of gold that follows the pointer across the face,
+// clipped to the card and never intercepting a click.
+.project__inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle 14rem at var(--mx, 50%) var(--my, 50%),
+    rgb(var(--bwg-gold-rgb) / 10%),
+    transparent 65%
+  );
+
+  @include motion-safe {
+    transition: opacity var(--bwg-dur-base) var(--bwg-ease-out);
+  }
+}
+
+.project.is-tilting .project__inner::after {
+  opacity: 1;
+}
+
+// --- Only the two live projects respond to a pointer -------------------------
+.project__inner--live {
+  &:hover,
+  &:focus-visible {
+    border-color: var(--bwg-rule-strong);
+
+    .project__title {
+      color: var(--bwg-gold-bright);
+    }
+
+    .project__external {
+      color: var(--bwg-gold-bright);
+    }
+  }
+}
+
+// Keyboard focus gets a fixed, gentle turn, so the effect is not mouse-only.
+// Setting the same two properties the pointer writes means the slot needs no
+// special case: they inherit down to it and drive the identical transform.
+.project__inner:focus-visible {
+  --px: -0.4;
+  --py: -0.4;
+}
+
+.project:has(:focus-visible) .project__media-sweep {
+  opacity: 1;
+}
+
+// The live cards keep the small lift they already had, on top of the depth.
+.project:has(.project__inner--live:hover) .project__inner,
+.project__inner--live:focus-visible {
+  @include motion-safe {
+    --card-lift: -4px;
+  }
+}
+
+.project__external {
+  position: absolute;
+  inset-block-start: var(--bwg-sp-5);
+  inset-inline-end: var(--bwg-sp-5);
+  display: grid;
+  place-items: center;
+  color: var(--bwg-gold);
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+// =============================================================================
+// Mark slot
+//
+// One square slot on every card, the same size whether it holds a logo or an
+// icon, so the six read as one system. The square is fixed in CSS, so the space
+// is reserved before any file arrives and nothing shifts as the images load.
+//
+// The slot is the 3D stage: it turns with the pointer, and the three layers
+// inside it sit at different depths so they slide against each other as it
+// moves. Nothing here touches width, height, margin or padding — a hovered card
+// occupies exactly the space it does at rest.
+// =============================================================================
+.project__media {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--mark-size);
+  height: var(--mark-size);
+  margin-block-end: var(--bwg-sp-5);
+  // preserve-3d only holds while overflow stays visible — a clip would flatten
+  // the layers back into one plane. The clipping lives on the plate instead.
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(var(--py, 0) * var(--tilt-max) * -1))
+    rotateY(calc(var(--px, 0) * var(--tilt-max)));
+
+  @include motion-safe {
+    transition: transform var(--bwg-dur-slow) var(--bwg-ease-back);
+  }
+}
+
+// While the pointer is on the card the turn tracks it closely. The longer,
+// overshooting curve above is what carries the slot home on leave, easing just
+// past rest and back rather than stopping dead.
+.project.is-tilting .project__media {
+  @include motion-safe {
+    transition: transform var(--bwg-dur-fast) linear;
+  }
+}
+
+// --- The three layers ---------------------------------------------------------
+.project__media-shadow,
+.project__media-plate,
+.project__media-mark {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--bwg-r);
+}
+
+// Furthest back, and inset so it reads as something the mark casts rather than
+// an outline around it.
+.project__media-shadow {
+  inset: 10%;
+  background: rgb(var(--bwg-ink-rgb) / 80%);
+  box-shadow: 0 0.6rem 1.4rem rgb(var(--bwg-ink-rgb) / 70%);
+  transform: translateZ(-1.5rem);
+}
+
+// The middle layer carries everything the slot used to: the border, the ground
+// and the clip.
+.project__media-plate {
+  border: 1px solid var(--bwg-hairline);
+  background: var(--bwg-ink);
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+// Artwork that arrives on an opaque background turns this layer light, so the
+// pale ground stops at the plate instead of running to the card edges. The mark
+// itself is never recoloured or overlaid.
+.project__media--plate .project__media-plate {
+  border-color: var(--bwg-plate);
+  background: var(--bwg-plate);
+}
+
+// A faint specular that follows the pointer across the plate.
+.project__media-sweep {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(
+    circle 5rem at var(--mx, 50%) var(--my, 50%),
+    rgb(var(--bwg-gold-rgb) / 26%),
+    transparent 70%
+  );
+
+  @include motion-safe {
+    transition: opacity var(--bwg-dur-base) var(--bwg-ease-out);
+  }
+}
+
+.project.is-tilting .project__media-sweep {
+  opacity: 1;
+}
+
+// Furthest forward. The gap between this and the plate is the parallax.
+.project__media-mark {
+  display: grid;
+  place-items: center;
+  padding: var(--bwg-sp-3);
+  transform: translateZ(1.1rem);
+
+  // Sized by max-*, not by width/height: the box can then never be larger than
+  // the space it has, so the whole mark is always visible with padding around
+  // it. object-fit backs that up rather than being relied on alone.
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+// Matched to the logos by weight rather than by box. A 1.25-stroke glyph filling
+// the slot the way a solid mark does would read far heavier, so it sits smaller
+// and at full strength instead.
+.project__media-icon {
+  display: grid;
+  place-items: center;
+  color: var(--bwg-gold);
+
+  svg {
+    stroke: currentcolor;
+  }
+}
+
+// =============================================================================
+// Card copy
+// =============================================================================
+.project__title {
+  // The external-link mark now sits level with the mark slot, well above the
+  // title, so the title gets the full width back.
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-ui);
+  // One step up from fs-sm: with the shorter artwork box the copy carries the
+  // card, so it should not read as a caption under a picture.
+  font-size: var(--bwg-fs-base);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+  transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+}
+
+.project__body {
+  // Never the full viewport width, at any layout.
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text-muted);
+  // One step up from fs-xs, for the same reason.
+  font-size: var(--bwg-fs-sm);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+// =============================================================================
+// Closing line
+// =============================================================================
+.projects__closing {
+  margin-block-start: var(--bwg-sp-8);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-xl);
+  font-weight: var(--bwg-fw-display-strong);
+}
+
+.projects__closing-lead {
+  color: var(--bwg-text);
+}
+
+.projects__closing-accent {
+  color: var(--bwg-gold);
+  margin-inline-start: 0.4em;
+}
+
+// =============================================================================
+// Scroll reveal
+//
+// Fails open. The finished state is the plain CSS default above — there is no
+// rule anywhere that hides these elements. `.is-revealed` only adds an animation
+// that plays them in from hidden, so if the observer never runs the section is
+// simply visible, and a reader with reduced motion gets the same.
+// =============================================================================
+@include motion-safe {
+  .is-revealed {
+    .projects__reveal {
+      animation: bwg-lift-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(var(--reveal-index, 0) * var(--bwg-stagger-copy));
+    }
+
+    .project {
+      animation: bwg-lift-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+      animation-delay: calc(
+        var(--bwg-delay-orbit) + var(--card-index, 0) * var(--bwg-stagger-orbit)
+      );
+    }
+  }
+}
+

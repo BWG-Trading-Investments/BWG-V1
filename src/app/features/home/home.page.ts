@@ -7,10 +7,10 @@ import { Contact } from './sections/contact/contact';
 import { Ecosystem } from './sections/ecosystem/ecosystem';
 import { Hero } from './sections/hero/hero';
 import { Invest } from './sections/invest/invest';
+import { Leaders } from './sections/leaders/leaders';
 import { Partnerships } from './sections/partnerships/partnerships';
 import { Projects } from './sections/projects/projects';
 import { Statement } from './sections/statement/statement';
-import { Why } from './sections/why/why';
 
 /**
  * The homepage.
@@ -22,7 +22,7 @@ import { Why } from './sections/why/why';
  */
 @Component({
   selector: 'bwg-home-page',
-  imports: [Hero, Statement, Ecosystem, About, Projects, Why, Partnerships, Invest, Contact],
+  imports: [Hero, Statement, About, Ecosystem, Projects, Leaders, Partnerships, Invest, Contact],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
