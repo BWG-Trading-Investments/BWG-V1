@@ -1,0 +1,381 @@
+@use 'abstracts' as *;
+
+:host {
+  display: block;
+}
+
+.project {
+  display: block;
+  // Clears the fixed navbar, which this page sits under like every other route.
+  padding-block: calc(var(--bwg-nav-h) + var(--bwg-sp-8)) var(--bwg-section-y);
+}
+
+.wrap {
+  @include wrap;
+}
+
+.project__lockup {
+  display: block;
+  width: auto;
+  height: 3.5rem;
+
+  @include up('md') {
+    height: 4.5rem;
+  }
+}
+
+:host-context([data-theme='dark']) .project__lockup {
+  content: url('/assets/bwg-lockup.png');
+}
+
+.project__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bwg-sp-2);
+  margin-block-start: var(--bwg-sp-6);
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--bwg-gold-bright);
+  }
+}
+
+// =============================================================================
+// Mark and copy
+//
+// The same two-column arrangement a leader profile uses, with the brand mark
+// standing where the portrait does. The mark column is the narrower of the two
+// because a square mark needs far less width than a standing figure.
+// =============================================================================
+.project__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-8);
+  margin-block-start: var(--bwg-sp-7);
+
+  @include up('lg') {
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+    column-gap: clamp(3rem, 5.5vw, 6rem);
+    align-items: start;
+  }
+}
+
+// The mark sits on a plate rather than loose on the page: unlike a cut-out
+// portrait it has no silhouette of its own to stand on, so without a ground it
+// would read as a floating sticker.
+.mark {
+  position: relative;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 18rem;
+  aspect-ratio: 1;
+
+  @include up('lg') {
+    max-width: none;
+  }
+}
+
+.mark__glow {
+  position: absolute;
+  z-index: -1;
+  inset: -12%;
+  background: radial-gradient(54% 54% at 50% 50%, rgb(var(--bwg-gold-rgb) / 16%), transparent 72%);
+}
+
+.mark__plate {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  background: var(--bwg-ink);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: var(--bwg-r);
+  box-shadow: 0 1rem 2.25rem rgb(var(--bwg-shadow-rgb) / 28%);
+}
+
+// Artwork that arrives on an opaque background turns the plate light, so the
+// pale ground stops at the plate instead of running into the page. The mark
+// itself is never recoloured or overlaid. See projects.data.ts.
+.mark--plate .mark__plate {
+  border-color: var(--bwg-plate);
+  background: var(--bwg-plate);
+}
+
+// Sized by max-*, not by width/height: the box can then never be larger than the
+// space it has, so the whole mark is always visible with padding around it.
+.mark__image {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.mark__icon {
+  color: var(--bwg-gold);
+}
+
+// =============================================================================
+// Copy
+// =============================================================================
+.project__sector {
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.project__name {
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-3xl);
+  font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-tight);
+  letter-spacing: var(--bwg-tracking-tight);
+  text-transform: uppercase;
+}
+
+.project__tagline {
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text-muted);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-lg);
+  font-weight: var(--bwg-fw-display);
+  line-height: var(--bwg-lh-snug);
+}
+
+.project__rule {
+  display: block;
+  width: 3.5rem;
+  height: 2px;
+  margin-block-start: var(--bwg-sp-6);
+  background: var(--bwg-gold);
+}
+
+.project__intro {
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-6);
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-lg);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+// The supplied one-liner, kept verbatim and set apart from the rest of the body
+// so the client's own wording is still identifiable on the page.
+.project__summary {
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-5);
+  padding-inline-start: var(--bwg-sp-5);
+  border-inline-start: 2px solid var(--bwg-gold);
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+// =============================================================================
+// Visit the live site
+// =============================================================================
+.visit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bwg-sp-3);
+  margin-block-start: var(--bwg-sp-6);
+  padding: var(--bwg-sp-3) var(--bwg-sp-5);
+  color: var(--bwg-gold);
+  background: var(--bwg-navy-soft);
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+  transition:
+    color var(--bwg-dur-base) var(--bwg-ease-out),
+    border-color var(--bwg-dur-base) var(--bwg-ease-out),
+    box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--bwg-gold-bright);
+    border-color: var(--bwg-gold);
+    box-shadow: var(--bwg-shadow-sm);
+  }
+
+  svg {
+    flex: 0 0 auto;
+    transition: transform var(--bwg-dur-base) var(--bwg-ease-out);
+  }
+
+  @include motion-safe {
+    &:hover svg,
+    &:focus-visible svg {
+      transform: translate(2px, -2px);
+    }
+  }
+}
+
+// =============================================================================
+// Overview
+// =============================================================================
+.overview {
+  max-width: var(--bwg-measure);
+  margin-block-start: var(--bwg-sp-7);
+}
+
+.overview__para {
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-md);
+  line-height: var(--bwg-lh-relaxed);
+
+  & + & {
+    margin-block-start: var(--bwg-sp-4);
+  }
+}
+
+// =============================================================================
+// Capability blocks
+//
+// Two up once there is room for it. They sit inside the copy column, so on a
+// phone they simply continue the single column the rest of the page is in.
+// =============================================================================
+.blocks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-5);
+  margin-block-start: var(--bwg-sp-8);
+  padding: 0;
+  list-style: none;
+
+  @include up('sm') {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.blocks__item {
+  display: grid;
+  align-content: start;
+  gap: var(--bwg-sp-3);
+  padding: var(--bwg-sp-5);
+  background: var(--bwg-navy-soft);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: var(--bwg-r);
+  transition:
+    border-color var(--bwg-dur-base) var(--bwg-ease-out),
+    box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+
+  &:hover {
+    border-color: var(--bwg-rule-strong);
+    box-shadow: var(--bwg-shadow-sm);
+  }
+}
+
+// The gold outline mark: a hairline disc, so the icon reads as a mark rather
+// than as a glyph dropped in front of the text.
+.blocks__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r-circle);
+  color: var(--bwg-gold);
+}
+
+.blocks__heading {
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-base);
+  font-weight: var(--bwg-fw-display);
+  line-height: var(--bwg-lh-snug);
+}
+
+.blocks__body {
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-base);
+  line-height: var(--bwg-lh-relaxed);
+}
+
+// =============================================================================
+// At a Glance
+// =============================================================================
+.glance {
+  margin-block-start: var(--bwg-sp-10);
+  padding-block-start: var(--bwg-sp-8);
+  border-block-start: 1px solid var(--bwg-hairline);
+}
+
+.glance__heading {
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.glance__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bwg-sp-4);
+  margin-block-start: var(--bwg-sp-6);
+  padding: 0;
+  list-style: none;
+
+  @include up('sm') {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @include up('lg') {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.glance__item {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: var(--bwg-sp-3);
+  padding: var(--bwg-sp-5) var(--bwg-sp-4);
+  text-align: center;
+  background: var(--bwg-navy-soft);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: var(--bwg-r);
+  transition:
+    border-color var(--bwg-dur-base) var(--bwg-ease-out),
+    box-shadow var(--bwg-dur-base) var(--bwg-ease-out);
+
+  &:hover {
+    border-color: var(--bwg-rule-strong);
+    box-shadow: var(--bwg-shadow-sm);
+  }
+}
+
+.glance__icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r-circle);
+  color: var(--bwg-gold);
+}
+
+.glance__label {
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-base);
+  line-height: var(--bwg-lh-snug);
+}
+
+.project--missing .project__back {
+  margin-block-start: var(--bwg-sp-6);
+}

@@ -190,8 +190,10 @@
   opacity: 1;
 }
 
-// --- Only the two live projects respond to a pointer -------------------------
-.project__inner--live {
+// --- Every card is a link now, so every card responds to a pointer -----------
+// The two with a live site used to be the only ones; the outbound link moved to
+// the project page, and the card goes there instead.
+.project__inner {
   &:hover,
   &:focus-visible {
     border-color: var(--bwg-rule-strong);
@@ -200,7 +202,7 @@
       color: var(--bwg-gold-bright);
     }
 
-    .project__external {
+    .project__more {
       color: var(--bwg-gold-bright);
     }
   }
@@ -218,22 +220,38 @@
   opacity: 1;
 }
 
-// The live cards keep the small lift they already had, on top of the depth.
-.project:has(.project__inner--live:hover) .project__inner,
-.project__inner--live:focus-visible {
+// The cards keep the small lift they already had, on top of the depth.
+.project:has(.project__inner:hover) .project__inner,
+.project__inner:focus-visible {
   @include motion-safe {
     --card-lift: -4px;
   }
 }
 
-.project__external {
-  position: absolute;
-  inset-block-start: var(--bwg-sp-5);
-  inset-inline-end: var(--bwg-sp-5);
-  display: grid;
-  place-items: center;
+// The affordance that says the card leads somewhere. margin-block-start: auto
+// pushes it to the foot of the flex column, so it sits on one baseline across a
+// row however long the body copy above it runs.
+.project__more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bwg-sp-2);
+  margin-block-start: auto;
+  padding-block-start: var(--bwg-sp-5);
   color: var(--bwg-gold);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+  text-transform: uppercase;
   transition: color var(--bwg-dur-base) var(--bwg-ease-out);
+
+  svg {
+    transition: transform var(--bwg-dur-base) var(--bwg-ease-out);
+  }
+
+  .project__inner:hover & svg,
+  .project__inner:focus-visible & svg {
+    transform: translateX(3px);
+  }
 }
 
 // =============================================================================
@@ -375,8 +393,6 @@
 // Card copy
 // =============================================================================
 .project__title {
-  // The external-link mark now sits level with the mark slot, well above the
-  // title, so the title gets the full width back.
   color: var(--bwg-text);
   font-family: var(--bwg-font-ui);
   // One step up from fs-sm: with the shorter artwork box the copy carries the
