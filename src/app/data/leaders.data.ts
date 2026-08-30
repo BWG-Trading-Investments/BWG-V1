@@ -122,7 +122,7 @@ export const LEADERS: readonly Leader[] = [
     org: 'BWG',
     photo: '/assets/images/leader-sarah.webp',
     width: 379,
-    height: 980,
+    height: 824,
     cardIcon: 'briefcase',
     cardSummary:
       'General Manager with more than 20 years in operations, international trading and brand development.',

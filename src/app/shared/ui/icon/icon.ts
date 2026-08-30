@@ -25,7 +25,10 @@ export type IconName =
   | 'gear'
   | 'chip'
   | 'clock'
-  | 'coins';
+  | 'coins'
+  | 'bullion'
+  | 'fish'
+  | 'jar';
 
 /**
  * A line icon from the site's set.
@@ -34,8 +37,9 @@ export type IconName =
  * other icon on the site, and it inherits `currentColor`, so where it is gold is
  * decided by the stylesheet using it rather than by the icon.
  *
- * It exists because the leader cards and the four profile pages draw from one
- * set; before this, an icon meant a `@switch` block copied into each template.
+ * It exists because the leader cards, the project cards and the detail pages
+ * behind both draw from one set; before this, an icon meant a `@switch` block
+ * copied into each template.
  */
 @Component({
   selector: 'bwg-icon',
@@ -154,6 +158,22 @@ export type IconName =
           <ellipse cx="10" cy="5.6" rx="6" ry="2.6" />
           <path d="M4 5.6v4c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-4" />
           <path d="M4 9.6v4c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-4" />
+        }
+        @case ('bullion') {
+          <path d="M5.4 11.2h9.2l2 5H3.4z" />
+          <path d="M7.4 7.2h5.2l1.4 4H6z" />
+        }
+        @case ('fish') {
+          <path
+            d="M14.4 10c-1.6 2.2-3.8 3.3-6.5 3.3S3 12.2 1.4 10c1.6-2.2 3.8-3.3 6.5-3.3s4.9 1.1 6.5 3.3z"
+          />
+          <path d="m14.4 10 3-2.2v4.4z" />
+          <circle cx="5" cy="9.2" r="0.6" />
+        }
+        @case ('jar') {
+          <path d="M5 5.2h10v2.2H5z" />
+          <path d="M5.6 7.4h8.8l.9 8.1a1.4 1.4 0 0 1-1.4 1.5H6.1a1.4 1.4 0 0 1-1.4-1.5z" />
+          <circle cx="10" cy="12" r="2.2" />
         }
       }
     </svg>

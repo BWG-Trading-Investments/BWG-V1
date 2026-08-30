@@ -41,6 +41,15 @@ export const routes: Routes = [
     loadComponent: () => import('./features/leader/leader.page').then((m) => m.LeaderPage),
   },
   {
+    // One component for every project; the slug picks the record out of
+    // data/projects.data.ts, which is also what enumerates these for the
+    // prerenderer in app.routes.server.ts. A project's outbound link to its live
+    // site lives on this page rather than on the homepage card.
+    path: 'projects/:slug',
+    title: `Projects — ${SITE}`,
+    loadComponent: () => import('./features/project/project.page').then((m) => m.ProjectPage),
+  },
+  {
     path: 'legal/:doc',
     title: `Legal — ${SITE}`,
     loadComponent: () => import('./features/legal/legal.page').then((m) => m.LegalPage),

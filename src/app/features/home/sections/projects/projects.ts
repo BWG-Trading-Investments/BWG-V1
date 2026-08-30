@@ -1,4 +1,4 @@
-import { NgTemplateOutlet, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,111 +10,11 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
+import { PROJECTS } from '../../../../data/projects.data';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { CardTilt } from './card-tilt';
-
-type ProjectIcon = 'globe' | 'bullion' | 'fish' | 'people' | 'screen' | 'jar';
-
-interface Project {
-  readonly name: string;
-  readonly body: string;
-  readonly icon: ProjectIcon;
-  /**
-   * The live site, or null while the project has none.
-   *
-   * This is the only thing that decides whether a card is a link. Giving a
-   * project a URL here turns its card into an anchor, adds the external-link
-   * affordance and the hover state, and nothing else has to change.
-   */
-  readonly url: string | null;
-  /**
-   * Card artwork, or null while there is none.
-   *
-   * These are brand marks, not photographs, so they are always fitted whole and
-   * never cropped. Images belong in `src/assets/images/` and are referenced from
-   * `/assets/…` — that is the directory the build actually copies; the `assets/`
-   * folder at the repo root is not in angular.json and never reaches dist.
-   */
-  readonly image: string | null;
-  /** The file's own pixel size, so the browser gets the right aspect hint. */
-  readonly imageWidth: number | null;
-  readonly imageHeight: number | null;
-  /**
-   * True when the file has no transparency.
-   *
-   * Such a mark cannot sit straight on a dark card: MA3DANHA's arrives on
-   * opaque white and is largely black, so it would read as a slab at best and be
-   * invisible at worst. Those get a light plate behind them. The artwork itself
-   * is never recoloured or overlaid.
-   */
-  readonly imageOnPlate: boolean;
-}
-
-/** All copy verbatim. */
-const PROJECTS: readonly Project[] = [
-  {
-    name: 'BUSINESS HUB',
-    body: 'International trade and business intelligence ecosystem connecting companies with global trade opportunities in raw and processed materials, products, machinery, services and systems.',
-    icon: 'globe',
-    url: null,
-    image: null,
-    imageWidth: null,
-    imageHeight: null,
-    imageOnPlate: false,
-  },
-  {
-    name: 'MA3DANHA',
-    body: 'A digital loyalty ecosystem designed to transform loyalty value into tangible precious-metal ownership.',
-    icon: 'bullion',
-    url: null,
-    // Opaque white, and mostly black artwork — needs the plate.
-    image: '/assets/images/ma3denha_f.png',
-    imageWidth: 1536,
-    imageHeight: 1024,
-    imageOnPlate: true,
-  },
-  {
-    name: 'FISH LINK',
-    body: 'A digital ecosystem designed to modernize and organize the wholesale seafood trade.',
-    icon: 'fish',
-    url: 'https://www.fishlink.co/',
-    image: null,
-    imageWidth: null,
-    imageHeight: null,
-    imageOnPlate: false,
-  },
-  {
-    name: 'MOSHAREK',
-    body: 'A platform focused on connecting businesses, opportunities and participation.',
-    icon: 'people',
-    url: null,
-    image: null,
-    imageWidth: null,
-    imageHeight: null,
-    imageOnPlate: false,
-  },
-  {
-    name: 'MADAD',
-    body: 'A digital business platform developed to fulfill the needs of basic players in the education industry.',
-    icon: 'screen',
-    url: 'https://www.madaaad.com/',
-    // Genuinely transparent, so it sits straight on the card with no plate.
-    image: '/assets/images/app_mark.png',
-    imageWidth: 1024,
-    imageHeight: 1024,
-    imageOnPlate: false,
-  },
-  {
-    name: 'AKIBAGOLD',
-    body: 'A smart savings concept designed to make precious-metal ownership accessible through digital saving.',
-    icon: 'jar',
-    url: null,
-    image: null,
-    imageWidth: null,
-    imageHeight: null,
-    imageOnPlate: false,
-  },
-];
 
 interface ProjectsCopy {
   readonly eyebrow: string;
@@ -125,6 +25,7 @@ interface ProjectsCopy {
   readonly closingAccent: string;
 }
 
+/** All copy verbatim. */
 const COPY: ProjectsCopy = {
   eyebrow: 'OUR PROJECTS',
   heading: 'FROM IDEAS TO IMPACT',
@@ -137,12 +38,17 @@ const COPY: ProjectsCopy = {
 /**
  * Our Projects.
  *
- * Six cards. The two with a live site are anchors; the four without are plain
- * elements, so nothing invites a click that leads nowhere.
+ * Six cards, each a link to that project's own page — the same arrangement Our
+ * Leaders uses. The projects come from data/projects.data.ts, which is also what
+ * the detail pages read, so nothing about a project is written down twice.
+ *
+ * The two projects with a live site used to be the only clickable cards, and
+ * they left the site immediately. Every card now leads to the page about the
+ * project, and the outbound link lives there.
  */
 @Component({
   selector: 'bwg-projects',
-  imports: [NgTemplateOutlet, CardTilt],
+  imports: [RouterLink, Icon, CardTilt],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './projects.html',
   styleUrl: './projects.scss',
