@@ -7,8 +7,9 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "preview": "npx --yes serve dist/bwg-v1/browser -l 4300",
-    "format": "prettier --write ."
+    "preview": "npm run build && node server.mjs",
+    "format": "prettier --write .",
+    "serve": "node server.mjs"
   },
   "private": true,
   "packageManager": "npm@10.8.2",
@@ -35,5 +36,8 @@
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }
