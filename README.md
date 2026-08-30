@@ -54,6 +54,29 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
+## Deployment
+
+The app builds with `outputMode: 'static'` — every route is prerendered to HTML at
+build time, so there is no Angular server at runtime. On a CDN host (Vercel,
+Netlify, Cloudflare Pages) point the platform at `dist/bwg-v1/browser` and nothing
+else is needed.
+
+Railway runs a container rather than a CDN, so it needs a process listening on
+`$PORT`. `server.mjs` is that process: a dependency-free static server that serves
+the prerendered files, gzips text, pins content-hashed assets with a long
+`Cache-Control`, and falls back to `index.csr.html` with a 404 status for unknown
+URLs. `railway.json` wires it up, so a fresh Railway service needs no build or
+start command set in the dashboard.
+
+To check a production build locally exactly as Railway will serve it:
+
+```bash
+npm run preview
+```
+
+Note that `npm start` runs the Angular dev server and is for local development
+only — it binds to localhost and must not be used as a deploy start command.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
