@@ -77,7 +77,7 @@ export interface Project {
    * No project needs this today: every supplied mark has a real alpha channel.
    * MA3DANHA used to be the exception and is not any more, so it now sits on the
    * same ink plate as the rest. Set this only for a file that genuinely has no
-   * transparency, and check the file before you do — a stale  here is a
+   * transparency, and check the file before you do — a stale `true` here is a
    * white box on a dark card.
    */
   readonly imageOnPlate: boolean;
