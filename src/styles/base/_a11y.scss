@@ -58,3 +58,34 @@ main:focus {
 .bwg-scroll-locked {
   overflow: hidden;
 }
+
+// The theme cross-fade.
+//
+// Added by ThemeService for the length of the switch and then removed. Left on
+// permanently, a transition across every colour in the document would drag on
+// every hover and every scroll reveal on the site.
+//
+// Transforms are deliberately excluded: the globe entrance, the card tilt and
+// the orbit are all mid-flight at any moment, and sweeping them into a colour
+// transition would stutter them.
+.is-theme-switching,
+.is-theme-switching *,
+.is-theme-switching *::before,
+.is-theme-switching *::after {
+  transition:
+    background-color var(--bwg-dur-slow) var(--bwg-ease-out),
+    border-color var(--bwg-dur-slow) var(--bwg-ease-out),
+    color var(--bwg-dur-slow) var(--bwg-ease-out),
+    fill var(--bwg-dur-slow) var(--bwg-ease-out),
+    stroke var(--bwg-dur-slow) var(--bwg-ease-out),
+    box-shadow var(--bwg-dur-slow) var(--bwg-ease-out) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-theme-switching,
+  .is-theme-switching *,
+  .is-theme-switching *::before,
+  .is-theme-switching *::after {
+    transition: none !important;
+  }
+}

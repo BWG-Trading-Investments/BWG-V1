@@ -1,0 +1,23 @@
+// =============================================================================
+// Brand marks
+// =============================================================================
+
+/// The light-theme lockup.
+///
+/// The master logo sets its wordmark and tagline in white. On ivory those simply
+/// disappear, leaving the gold mark floating above nothing — so the light theme
+/// ships a second file with that ink recoloured to --bwg-text. The mark itself is
+/// untouched; only the achromatic pixels differ between the two files.
+///
+/// Swapped with `content` rather than by rendering both files and hiding one.
+/// Seven components place this logo, most of them inside bespoke mark slots that
+/// carry their own 3D transforms and positioning, and threading a second image
+/// through each of those layouts is a far larger change than the problem
+/// warrants. This is one rule, adds no elements, and lands before first paint
+/// because the theme attribute is already on <html> when the CSS applies.
+///
+/// A browser without `content` on replaced elements keeps the master file, which
+/// is the behaviour that exists today rather than a new failure.
+:root[data-theme='light'] img[src$='bwg-logo-v2.png'] {
+  content: url('/assets/bwg-logo-v2-light.png');
+}

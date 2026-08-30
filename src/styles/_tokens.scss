@@ -41,6 +41,9 @@
   // component ever restating the hex: rgb(var(--bwg-gold-rgb) / 20%).
   // ---------------------------------------------------------------------------
   --bwg-ink-rgb: 7 8 11;
+  // Shadows are cast light, not the page colour at alpha. This one stays dark in
+  // both themes; --bwg-ink-rgb does not.
+  --bwg-shadow-rgb: 7 8 11;
   --bwg-navy-rgb: 12 17 25;
   --bwg-gold-rgb: 201 161 91;
   --bwg-text-rgb: 244 242 237;
@@ -292,4 +295,90 @@
   --bwg-origin-inline-start: right;
   --bwg-origin-inline-end: left;
   --bwg-enter-inline-end: -35%;
+}
+
+// =============================================================================
+// LIGHT THEME
+//
+// Only colour is redeclared. Every size, weight, duration and easing above is
+// shared, so the two themes are the same design in two palettes rather than two
+// designs — and any token added above is inherited here unless it is listed.
+//
+// Set as data-theme="light" on <html>, and that is the default: index.html
+// declares the attribute in the markup, so the light palette is what the static
+// HTML paints, with or without JavaScript, and there is nothing to flash.
+//
+// Dark therefore reaches the reader only through the toggle. It remains the base
+// :root block below rather than a second override — the two are the same design
+// in two palettes, and which one carries the shared tokens is an implementation
+// detail, not a statement about which comes first.
+// =============================================================================
+:root[data-theme='light'] {
+  // Warm ivory, never pure white — the page keeps a paper warmth that plain
+  // #fff would lose.
+  --bwg-ink: #f7f4ee; // page background
+  --bwg-navy: #fdfbf6; // navbar solid state
+  --bwg-navy-soft: #fffdf8; // panels and cards, a shade above the page
+
+  // Gold has to carry text here, and the dark-theme champagne measures only
+  // 2.2:1 on ivory. This deeper cut reads as the same metal and clears AA at
+  // 4.55:1; the bright step goes darker still, because on a light ground
+  // emphasis means more depth, not more light.
+  --bwg-gold: #8a6a32;
+  --bwg-gold-bright: #6f5528;
+  --bwg-gold-deep: #a98a4e;
+
+  // Deep charcoal-navy, and a warm grey beneath it. 15.5:1 and 5.5:1 on ivory.
+  --bwg-text: #141a24;
+  --bwg-text-muted: #5b6470;
+
+  --bwg-ink-rgb: 247 244 238;
+  --bwg-navy-rgb: 253 251 246;
+  --bwg-gold-rgb: 138 106 50;
+  --bwg-text-rgb: 20 26 36;
+
+  // Every derived token above recomputes from those triplets on its own: the
+  // glass navbar, the gold rules and the neutral hairline all follow without
+  // being restated. Only the two that need a different intensity are listed.
+  --bwg-glow: rgb(var(--bwg-gold-rgb) / 9%);
+  --bwg-glow-core: rgb(var(--bwg-gold-rgb) / 15%);
+
+  // The neutral divider is the one derived token that does not survive the swap
+  // unchanged: 8% of near-black on ivory is barely a line. 12% gives the warm
+  // grey the light theme wants without turning a hairline into a border.
+  --bwg-hairline: rgb(var(--bwg-text-rgb) / 12%);
+
+  // Softer than the dark theme, where deep shadow reads as depth. On paper it
+  // reads as dirt.
+  --bwg-shadow-sm: 0 1px 2px rgb(var(--bwg-shadow-rgb) / 6%);
+  --bwg-shadow-md: 0 10px 30px rgb(var(--bwg-shadow-rgb) / 8%);
+  --bwg-shadow-lg: 0 28px 70px rgb(var(--bwg-shadow-rgb) / 12%);
+
+  // ---------------------------------------------------------------------------
+  // Globe
+  //
+  // Not an inversion. The planet becomes the ivory body and the detail becomes
+  // the dark element: continents, arcs and cities are all deep gold on a warm
+  // sphere, with the rim as the one bright edge. The globe component also swaps
+  // its additive blending for normal blending under this theme — additive only
+  // ever brightens, so on a light ground it washes to white.
+  // ---------------------------------------------------------------------------
+  // The body is near-white rather than ivory on purpose. Light is multiplicative:
+  // an already-dim albedo under a warm fill lands on khaki, which is what a
+  // literal reading of "ivory sphere" produced — a flat olive disc with no
+  // continents on it. Starting from near-white lets the fill do the shading, so
+  // the lit face sits just above the page and the far face falls to a warm grey
+  // that still reads as the same material.
+  --bwg-globe-body: #fffdf8; // the sphere, lit almost to the page colour
+  --bwg-globe-body-lit: #ffffff; // where the key light strikes it
+  --bwg-globe-light: #fff0d8; // soft warm key
+  --bwg-globe-ambient: #f2ecdf; // warm fill, and the floor the whole sphere sits on
+  --bwg-globe-haze: #b08d4e;
+  // Dark enough to hold their own against a near-white body: on a pale planet
+  // the continents are the ink, not the highlight.
+  --bwg-globe-land: #6b5227;
+  --bwg-globe-city: #3d2c12; // denser points still
+  --bwg-globe-atmosphere: #a98a4e;
+  --bwg-globe-arc: #7a5c2a;
+  --bwg-globe-node: #3d2c12;
 }

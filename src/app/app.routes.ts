@@ -33,6 +33,14 @@ export const routes: Routes = [
     redirectTo: () => inject(Router).parseUrl('/#leaders'),
   },
   {
+    // One component for every leader; the slug picks the record out of
+    // data/leaders.data.ts, which is also what enumerates these for the
+    // prerenderer in app.routes.server.ts.
+    path: 'leaders/:slug',
+    title: `Leadership — ${SITE}`,
+    loadComponent: () => import('./features/leader/leader.page').then((m) => m.LeaderPage),
+  },
+  {
     path: 'legal/:doc',
     title: `Legal — ${SITE}`,
     loadComponent: () => import('./features/legal/legal.page').then((m) => m.LegalPage),

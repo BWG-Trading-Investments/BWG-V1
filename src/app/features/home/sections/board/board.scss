@@ -1,0 +1,385 @@
+@use 'abstracts' as *;
+
+:host {
+  display: block;
+}
+
+.board {
+  @include section-shell;
+
+  position: relative;
+  // Contains the environment layers, and keeps their z-indexes from reaching any
+  // other section.
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.wrap {
+  @include wrap;
+}
+
+.board__inner {
+  position: relative;
+  z-index: 1;
+}
+
+// =============================================================================
+// The environment
+//
+// One set of layers spanning the whole section. Every colour comes from a token,
+// so the light theme gives the bright glazed office the brief asks for and the
+// dark theme gives the same room after hours rather than an ivory panel dropped
+// into a dark page.
+// =============================================================================
+.env {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+// Daylight from high up, over a ground that deepens toward the floor.
+.env__daylight {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(72% 46% at 50% 0%, rgb(var(--bwg-gold-rgb) / 13%), transparent 70%),
+    linear-gradient(to bottom, var(--bwg-navy-soft) 0%, var(--bwg-ink) 76%);
+}
+
+// Floor-to-ceiling glazing: vertical mullions that fade out before they reach
+// the floor, so they read as glass above eye level rather than as stripes.
+.env__glass {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgb(var(--bwg-text-rgb) / 7%) 0 1px,
+    transparent 1px 12.5%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 8%, #000 52%, transparent 88%);
+  mask-image: linear-gradient(to bottom, #000 8%, #000 52%, transparent 88%);
+}
+
+.env__world {
+  position: absolute;
+  inset-block-start: 8%;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  width: min(76%, 44rem);
+  aspect-ratio: 1;
+  color: var(--bwg-gold);
+  opacity: 0.12;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.env__floor {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 22%;
+  background: linear-gradient(to bottom, transparent, rgb(var(--bwg-text-rgb) / 5%));
+}
+
+// =============================================================================
+// Heading
+// =============================================================================
+.board__head {
+  text-align: center;
+}
+
+.board__title {
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-3xl);
+  font-weight: var(--bwg-fw-display-strong);
+  line-height: var(--bwg-lh-tight);
+  // Wider than the site's display default: this is a plate, not a headline.
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.board__of {
+  color: var(--bwg-gold);
+}
+
+.board__kicker {
+  margin-block-start: var(--bwg-sp-4);
+  color: var(--bwg-text-muted);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+// =============================================================================
+// The three directors
+//
+// One shared height is what lines them up. Every file is the same height with
+// the crown of the head at its top edge, so fixing the height and letting the
+// width follow puts the three heads on one line at one scale without a single
+// per-person adjustment.
+// =============================================================================
+.cast {
+  --figure-h: clamp(15rem, 36vw, 25rem);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-8);
+  justify-items: center;
+  margin-block-start: var(--bwg-sp-9);
+  padding: 0;
+  list-style: none;
+
+  @include up('md') {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--bwg-sp-3);
+    // Aligned from the top, not the bottom. The photographs are all the same
+    // height, so this puts the three crowns and the three plate tops on one line
+    // each; bottom-aligning would instead let a title that wraps to two lines
+    // push that director's head up out of the row.
+    align-items: start;
+  }
+}
+
+// The floor they stand on, drawn from the foot of the figures rather than from
+// the section, so it always meets them wherever the layout puts them.
+@include up('md') {
+  .cast::after {
+    content: '';
+    position: absolute;
+    inset-inline: -4%;
+    inset-block-start: var(--figure-h);
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--bwg-rule-strong) 12%,
+      var(--bwg-rule-strong) 88%,
+      transparent
+    );
+  }
+}
+
+// Full-bleed rather than confined to the content column, because a view through
+// a window does not stop where the text does. Its foot is pinned to the floor
+// line, so the buildings stand on the same ground the directors do.
+.cast__skyline {
+  // Only where the directors stand in a row. Once they stack, the one floor line
+  // this is pinned to no longer exists, and the buildings would cut across the
+  // first man's waist instead of standing behind all three.
+  display: none;
+
+  @include up('md') {
+    display: block;
+    position: absolute;
+    z-index: -2;
+    inset-inline: calc(50% - 50vw);
+    inset-block-end: calc(100% - var(--figure-h));
+    height: 9rem;
+    color: var(--bwg-text);
+    opacity: 0.07;
+    filter: blur(3px);
+    pointer-events: none;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.cast__member {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.cast__figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  min-width: 0;
+}
+
+// The contact shadow. Without it three cut-outs hang in the air; with it they
+// stand on the floor the row draws.
+.cast__figure::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset-inline: 8%;
+  inset-block-start: calc(var(--figure-h) - 2rem);
+  height: 4rem;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgb(var(--bwg-shadow-rgb) / 22%),
+    transparent 72%
+  );
+}
+
+.cast__photo {
+  display: block;
+  height: var(--figure-h);
+  width: auto;
+  max-width: 100%;
+  // Each original was cropped mid-thigh. Left alone the three would end on three
+  // hard horizontal cuts; this walks them into the floor instead.
+  -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+}
+
+// =============================================================================
+// Name plates
+// =============================================================================
+.plate {
+  position: relative;
+  z-index: 1;
+  // Rides up over the foot of the figure, so the plate belongs to the person
+  // rather than sitting in a row of its own.
+  margin-block-start: calc(var(--bwg-sp-6) * -1);
+  max-width: 100%;
+  // drop-shadow rather than box-shadow: the panel is clipped to a trapezoid and
+  // a box-shadow would draw the rectangle the clip just removed.
+  filter: drop-shadow(0 0.5rem 1rem rgb(var(--bwg-shadow-rgb) / 16%));
+}
+
+.plate__panel {
+  display: grid;
+  gap: 0.3rem;
+  padding: var(--bwg-sp-4) var(--bwg-sp-6);
+  // Translucent, so the room shows faintly through it.
+  background: rgb(var(--bwg-navy-rgb) / 90%);
+  border-block-start: 2px solid var(--bwg-gold);
+  // A plinth: narrower at the top, flaring to full width at the foot.
+  clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%);
+  text-align: center;
+}
+
+.plate__name {
+  color: var(--bwg-text);
+  font-family: var(--bwg-font-display);
+  font-size: var(--bwg-fs-base);
+  font-weight: var(--bwg-fw-display);
+  line-height: var(--bwg-lh-snug);
+  white-space: nowrap;
+}
+
+.plate__role {
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  line-height: var(--bwg-lh-snug);
+  text-transform: uppercase;
+}
+
+// =============================================================================
+// Values bar
+// =============================================================================
+.values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bwg-sp-6) var(--bwg-sp-4);
+  margin-block-start: var(--bwg-sp-10);
+  padding: 0;
+  padding-block-start: var(--bwg-sp-8);
+  border-block-start: 1px solid var(--bwg-hairline);
+  list-style: none;
+
+  @include up('sm') {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @include up('lg') {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+  }
+}
+
+.values__item {
+  display: grid;
+  justify-items: center;
+  gap: var(--bwg-sp-3);
+  text-align: center;
+
+  @include up('lg') {
+    padding-inline: var(--bwg-sp-4);
+
+    & + & {
+      border-inline-start: 1px solid var(--bwg-hairline);
+    }
+  }
+}
+
+.values__icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r-circle);
+  color: var(--bwg-gold);
+}
+
+.values__label {
+  display: grid;
+  gap: 0.1rem;
+  color: var(--bwg-text);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-wide);
+  line-height: var(--bwg-lh-snug);
+  text-transform: uppercase;
+}
+
+.values__tail {
+  color: var(--bwg-text-muted);
+}
+
+.board__motto {
+  margin-block-start: var(--bwg-sp-8);
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-sm);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+// =============================================================================
+// Scroll reveal
+//
+// Fails open, and the keyframes are global — see styles/base/_animations.scss
+// for why a component cannot declare its own.
+// =============================================================================
+@include motion-safe {
+  .is-revealed .reveal {
+    animation: bwg-lift-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+    animation-delay: calc(var(--reveal-index, 0) * var(--bwg-stagger-copy));
+  }
+
+  .is-revealed .cast__member {
+    animation: bwg-lift-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+    animation-delay: calc(
+      var(--bwg-stagger-copy) * 2 + var(--member-index, 0) * var(--bwg-stagger-labels)
+    );
+  }
+
+  .is-revealed .values__item {
+    animation: bwg-fade-in var(--bwg-dur-reveal) var(--bwg-ease-out) both;
+    animation-delay: calc(
+      var(--bwg-stagger-copy) * 5 + var(--value-index, 0) * var(--bwg-stagger-nav)
+    );
+  }
+}

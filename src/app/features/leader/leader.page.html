@@ -1,0 +1,121 @@
+@if (leader(); as person) {
+  <article class="profile">
+    <div class="wrap">
+      <!--
+        The lockup, top left, on every profile. Height is set in CSS and the
+        width left to follow, so it can never be stretched.
+      -->
+      <img
+        class="profile__lockup"
+        [src]="lockup.src"
+        [attr.alt]="lockup.alt"
+        [width]="lockup.width"
+        [height]="lockup.height"
+        fetchpriority="high"
+        decoding="async"
+      />
+
+      <a class="profile__back" routerLink="/" fragment="leaders">
+        <svg
+          viewBox="0 0 20 20"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M16 10H5M9 6l-4 4 4 4" />
+        </svg>
+        Our Leaders
+      </a>
+
+      <div class="profile__grid">
+        <figure class="portrait">
+          <span class="portrait__glow" aria-hidden="true"></span>
+          <img
+            class="portrait__photo"
+            [src]="person.photo"
+            [attr.alt]="person.name"
+            [width]="person.width"
+            [height]="person.height"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </figure>
+
+        <div class="profile__copy">
+          <h1 class="profile__name">{{ person.name }}</h1>
+
+          <p class="profile__title">
+            {{ person.title }}
+            @if (person.org) {
+              <span class="profile__org">{{ person.org }}</span>
+            }
+          </p>
+
+          <span class="profile__rule" aria-hidden="true"></span>
+
+          @if (person.quote.length) {
+            <blockquote class="quote">
+              @for (line of person.quote; track $index) {
+                <span class="quote__line">{{ line }}</span>
+              }
+            </blockquote>
+          }
+
+          <p class="profile__intro">{{ person.intro }}</p>
+
+          @if (person.bio.length) {
+            <div class="bio">
+              @for (paragraph of person.bio; track $index) {
+                <p class="bio__para">{{ paragraph }}</p>
+              }
+            </div>
+          }
+
+          @if (person.blocks.length) {
+            <ul class="blocks" role="list">
+              @for (block of person.blocks; track block.heading) {
+                <li class="blocks__item">
+                  <span class="blocks__icon">
+                    <bwg-icon [name]="block.icon" [size]="20" />
+                  </span>
+                  <h2 class="blocks__heading">{{ block.heading }}</h2>
+                  <p class="blocks__body">{{ block.body }}</p>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+
+      @if (person.expertise.length) {
+        <section class="exp" aria-labelledby="leader-expertise">
+          <h2 class="exp__heading" id="leader-expertise">Core Areas of Expertise</h2>
+
+          <ul class="exp__grid" role="list">
+            @for (item of person.expertise; track item.label) {
+              <li class="exp__item">
+                <span class="exp__icon">
+                  <bwg-icon [name]="item.icon" [size]="18" />
+                </span>
+                <span class="exp__label">{{ item.label }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  </article>
+} @else {
+  <article class="profile profile--missing">
+    <div class="wrap">
+      <h1 class="profile__name">Leader not found</h1>
+      <p class="profile__title">That profile does not exist.</p>
+      <a class="profile__back" routerLink="/" fragment="leaders">Our Leaders</a>
+    </div>
+  </article>
+}

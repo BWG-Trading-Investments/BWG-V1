@@ -161,7 +161,7 @@
   --card-z: 0.75rem;
   --media-z: 1.75rem;
 
-  box-shadow: 0 1.25rem 2.5rem rgb(var(--bwg-ink-rgb) / 45%),
+  box-shadow: 0 1.25rem 2.5rem rgb(var(--bwg-shadow-rgb) / 45%),
     0 0 2rem rgb(var(--bwg-gold-rgb) / 12%);
 }
 
@@ -288,9 +288,18 @@
 // an outline around it.
 .project__media-shadow {
   inset: 10%;
-  background: rgb(var(--bwg-ink-rgb) / 80%);
-  box-shadow: 0 0.6rem 1.4rem rgb(var(--bwg-ink-rgb) / 70%);
+  background: rgb(var(--bwg-shadow-rgb) / 80%);
+  box-shadow: 0 0.6rem 1.4rem rgb(var(--bwg-shadow-rgb) / 70%);
   transform: translateZ(-1.5rem);
+
+  // On a dark card this layer is very nearly solid, because what it stands in
+  // for is the absence of light. The same alpha on paper reads as a hole punched
+  // through the card rather than as depth, so on the light theme it drops back
+  // to what a shadow actually is there: a soft cast, not a void.
+  :host-context([data-theme='light']) & {
+    background: rgb(var(--bwg-shadow-rgb) / 22%);
+    box-shadow: 0 0.6rem 1.4rem rgb(var(--bwg-shadow-rgb) / 28%);
+  }
 }
 
 // The middle layer carries everything the slot used to: the border, the ground

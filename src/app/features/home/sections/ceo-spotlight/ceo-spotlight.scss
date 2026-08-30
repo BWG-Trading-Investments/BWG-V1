@@ -1,0 +1,498 @@
+@use 'abstracts' as *;
+
+// The reference calls for a transitional serif and a humanist sans. Both are
+// loaded by the existing Google Fonts link in index.html alongside the site's
+// own two families, so there is no second font pipeline.
+$serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+$sans: 'Lato', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+// The two thresholds the brief names. Neither is in the shared breakpoint map,
+// and adding them would mean editing a shared style file this change may not
+// touch, so they live here.
+$stack-stats: 75rem; // 1200px — the stats card drops under the name
+$stack-all: 62rem; // 992px  — everything becomes one column
+
+:host {
+  display: block;
+}
+
+.spotlight {
+  display: block;
+  padding-block: var(--bwg-sp-8);
+}
+
+// =============================================================================
+// The card
+//
+// One card, sized to sit inside a single viewport on a desktop. Everything below
+// is deliberately small: this is a dense information card, not a page section,
+// and the whole thing has to land near 880px tall on a 1080p laptop.
+// =============================================================================
+.card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  max-width: 87.5rem; // 1400px
+  margin-inline: auto;
+  padding: var(--bwg-sp-5) var(--bwg-sp-6) 1.25rem;
+  background: var(--bwg-navy-soft);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: 14px;
+  box-shadow: var(--bwg-shadow-md);
+  font-family: $sans;
+}
+
+@media (min-width: $stack-all) {
+  .card {
+    padding-inline: 2rem;
+  }
+}
+
+// The viewport cap, scoped to where the card is actually known to fit: the wide
+// layout on a tall enough screen, where it measures about 880px. Between 992 and
+// 1200 the stats card drops under the name and the card grows past a short
+// viewport, so capping there would clip content instead of fitting it — the card
+// clips its own overflow to keep the rounded corners and the decoration in.
+@media (min-width: $stack-stats) and (min-height: 60rem) {
+  .card {
+    max-height: 100vh;
+  }
+}
+
+// -- decoration ---------------------------------------------------------------
+.card__decor {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+// Diagonal planes, barely there.
+.card__wedge {
+  position: absolute;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--bwg-gold-rgb) / 7%),
+    rgb(var(--bwg-gold-rgb) / 0%) 62%
+  );
+}
+
+.card__wedge--one {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 34%;
+  height: 62%;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.card__wedge--two {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  width: 30%;
+  height: 46%;
+  clip-path: polygon(100% 100%, 100% 0, 0 100%);
+}
+
+// The world map watermark, behind the portrait.
+.card__map {
+  position: absolute;
+  inset-block-start: 6%;
+  inset-inline-start: 2%;
+  width: 30%;
+  aspect-ratio: 1;
+  color: var(--bwg-gold);
+  opacity: 0.1;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// -- logo ---------------------------------------------------------------------
+// Width is set and the height left to follow, so it can never be stretched. The
+// artwork's black card is keyed out in the asset itself, so it sits on the ivory
+// with no box and no border.
+.card__logo {
+  display: block;
+  width: 90px;
+  height: auto;
+  margin-block-end: var(--bwg-sp-3);
+}
+
+// The original wordmark is white and invisible on ivory, so the markup carries
+// the ink variant. Light is the default theme; this swaps the original back in.
+:host-context([data-theme='dark']) .card__logo {
+  content: url('/assets/bwg-lockup.png');
+}
+
+// =============================================================================
+// Layout
+// =============================================================================
+.card__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-6);
+
+  @media (min-width: $stack-all) {
+    grid-template-columns: 28% minmax(0, 1fr);
+    gap: var(--bwg-sp-5);
+    align-items: end;
+  }
+}
+
+// -- portrait -----------------------------------------------------------------
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.stage__photo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 20rem;
+  // A soft ground shadow that follows the silhouette rather than a box, so he
+  // stands on the card instead of being pasted onto it.
+  filter: drop-shadow(0 0.5rem 0.7rem rgb(var(--bwg-shadow-rgb) / 16%));
+  // He is cropped mid-thigh in the original; this walks the cut into the card.
+  -webkit-mask-image: linear-gradient(to bottom, #000 92%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 92%, transparent 100%);
+
+  @media (min-width: $stack-all) {
+    // Bottom-aligned and pushed to the trailing side of its column, which is
+    // what leaves the corner free for the quote to sit in.
+    max-height: 24rem;
+    margin-inline-start: auto;
+  }
+}
+
+// A halo, because a navy suit on a near-black card cannot cast a dark shadow.
+:host-context([data-theme='dark']) .stage__photo {
+  filter: drop-shadow(0 0 1.2rem rgb(var(--bwg-gold-rgb) / 18%));
+}
+
+// -- quote --------------------------------------------------------------------
+.quote {
+  position: relative;
+  margin: var(--bwg-sp-4) 0 0;
+  padding-inline-start: 1.4rem;
+  max-width: 22rem;
+
+  @media (min-width: $stack-all) {
+    // The bottom-left corner of the column. It overlaps the portrait vertically
+    // but never horizontally: he is pushed to the trailing side, so navy italic
+    // never lands on a navy suit.
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    max-width: 52%;
+    margin-block-start: 0;
+  }
+}
+
+.quote__mark {
+  color: var(--bwg-gold);
+  font-family: $serif;
+  font-size: 1.9rem;
+  line-height: 0;
+}
+
+.quote__mark:not(.quote__mark--close) {
+  position: absolute;
+  inset-block-start: 0.55rem;
+  inset-inline-start: 0;
+}
+
+.quote__mark--close {
+  margin-inline-start: 0.15rem;
+  vertical-align: -0.35rem;
+}
+
+.quote__text {
+  margin: 0;
+  color: var(--bwg-text);
+  font-family: $serif;
+  font-size: 0.8125rem; // 13px
+  font-style: italic;
+  line-height: 1.5;
+}
+
+// =============================================================================
+// Name, title, stats
+// =============================================================================
+.main {
+  min-width: 0;
+}
+
+.main__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bwg-sp-5);
+  align-items: start;
+
+  @media (min-width: $stack-stats) {
+    grid-template-columns: minmax(0, 1fr) 22.5rem;
+    gap: var(--bwg-sp-6);
+  }
+}
+
+.ident__name {
+  display: grid;
+  font-family: $serif;
+  font-weight: 700;
+  // Tight leading, so two big lines stay compact.
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  font-size: clamp(2.25rem, 3.4vw, 3.5rem); // 36 -> 56px
+}
+
+.ident__lead {
+  color: var(--bwg-text);
+}
+
+.ident__tail {
+  color: var(--bwg-gold);
+}
+
+.ident__rule {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin-block-start: var(--bwg-sp-3);
+  background: var(--bwg-gold);
+}
+
+.ident__title {
+  display: grid;
+  margin-block-start: var(--bwg-sp-3);
+  color: var(--bwg-text);
+  font-size: 1.0625rem; // 17px
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ident__title-line {
+  display: block;
+}
+
+// -- stats card ---------------------------------------------------------------
+.stats {
+  display: grid;
+  background: var(--bwg-ink);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: 10px;
+  box-shadow: var(--bwg-shadow-sm);
+}
+
+.stats__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem 1rem;
+
+  & + & {
+    border-block-start: 1px solid var(--bwg-hairline);
+  }
+}
+
+.stats__copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.stats__value {
+  color: var(--bwg-gold);
+  font-size: 1.625rem; // 26px
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.stats__label {
+  color: var(--bwg-gold);
+  font-size: 0.6875rem; // 11px
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.stats__note {
+  color: var(--bwg-text);
+  font-size: 0.75rem; // 12px
+  line-height: 1.45;
+}
+
+// =============================================================================
+// Biography
+//
+// Six blocks, filled down the first column and then the second so the reading
+// order matches the reference. grid-auto-flow does that; the row template is
+// what tells it where to wrap.
+// =============================================================================
+.bios {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-block-start: var(--bwg-sp-4);
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: $stack-all) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    column-gap: var(--bwg-sp-6);
+  }
+}
+
+.bios__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  padding-block: 0.55rem;
+  border-block-start: 1px solid var(--bwg-hairline);
+
+  // The first block of each column opens the column, so it needs no rule above.
+  &:first-child {
+    border-block-start: 0;
+  }
+
+  @media (min-width: $stack-all) {
+    &:nth-child(4) {
+      border-block-start: 0;
+    }
+  }
+}
+
+.bios__text {
+  color: var(--bwg-text-muted);
+  font-size: 0.78125rem; // 12.5px
+  line-height: 1.5;
+}
+
+// =============================================================================
+// The circular gold marks
+// =============================================================================
+.disc {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r-circle);
+  color: var(--bwg-gold);
+
+  svg {
+    display: block;
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+}
+
+.disc--lg {
+  width: 2.4rem;
+  height: 2.4rem;
+
+  svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+}
+
+// =============================================================================
+// Core areas
+// =============================================================================
+.areas {
+  margin-block-start: var(--bwg-sp-4);
+  padding: 0.7rem var(--bwg-sp-5) 0.6rem;
+  background: var(--bwg-ink);
+  border: 1px solid var(--bwg-hairline);
+  border-radius: 10px;
+}
+
+// The heading sits on a gold hairline that runs out to both edges.
+.areas__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--bwg-sp-4);
+
+  &::before,
+  &::after {
+    content: '';
+    height: 1px;
+    background: var(--bwg-rule);
+  }
+}
+
+.areas__heading-text {
+  color: var(--bwg-gold);
+  font-size: 0.6875rem; // 11px
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.areas__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-block-start: var(--bwg-sp-3);
+  padding: 0;
+  list-style: none;
+
+  // Two per row while the card is a single column, as the brief sets it; five
+  // once the layout goes wide; all ten only when there is room for ten.
+  @media (min-width: $stack-all) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  @media (min-width: $stack-stats) {
+    // All ten across, equal width, with a hairline between each. Below this the
+    // card is not wide enough to give ten items a readable column.
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+}
+
+.areas__item {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.4rem;
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+
+  & + & {
+    border-inline-start: 1px solid var(--bwg-hairline);
+  }
+}
+
+.areas__icon {
+  color: var(--bwg-gold);
+
+  svg {
+    display: block;
+    width: 1.625rem; // 26px
+    height: 1.625rem;
+  }
+}
+
+.areas__label {
+  color: var(--bwg-text);
+  font-size: 0.65625rem; // 10.5px
+  line-height: 1.35;
+  // Three lines at most, as the reference sets them.
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

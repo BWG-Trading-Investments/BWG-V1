@@ -5,10 +5,13 @@ import {
   ElementRef,
   type OnDestroy,
   afterNextRender,
+  effect,
   inject,
   output,
   viewChild,
 } from '@angular/core';
+
+import { ThemeService } from '../../../../../core/theme.service';
 
 import { ARC_ROUTES, type GeoPoint, sampleLandPoints, toVector } from './world-map';
 
@@ -59,6 +62,60 @@ const FOV = 34;
  * why the globe was being cut off top, right and bottom.
  */
 const CAMERA_DISTANCE = 4.75;
+
+/**
+ * The numbers that cannot come from a colour token.
+ *
+ * Light mode is not the dark scene with different colours in it: an ivory
+ * sphere lit at 2.6 blows out to flat white, and every additive glow — which by
+ * definition can only brighten — disappears into an ivory page. Intensities and
+ * strengths therefore carry a value per theme, and the additive passes switch
+ * to normal blending so the same gold darkens the page instead of lightening it.
+ */
+interface Tuning {
+  readonly keyIntensity: number;
+  readonly ambientIntensity: number;
+  readonly atmosphereStrength: number;
+  readonly hazeStrength: number;
+  readonly cityHalo: number;
+  readonly nodeOpacity: number;
+}
+
+const DARK_TUNING: Tuning = {
+  keyIntensity: 2.6,
+  ambientIntensity: 0.55,
+  atmosphereStrength: 1.35,
+  hazeStrength: 0.32,
+  cityHalo: 0.15,
+  nodeOpacity: 0.9,
+};
+
+const LIGHT_TUNING: Tuning = {
+  // Less key, more fill. The terminator still has to be there — it is what makes
+  // the disc read as a sphere — but the shaded side has to stay light enough to
+  // look like ivory in shadow rather than a hole cut in the page.
+  // Ambient light is multiplicative, so on a light ground the fill sets the
+  // floor and the key only adds the last stretch. A dark-theme-shaped split —
+  // dim fill, strong key — drags a white albedo down to khaki and then cannot
+  // lift it back, which is exactly what a mid-grey planet looked like. Here the
+  // fill carries the sphere to just under the page colour and the key lifts the
+  // lit face the rest of the way, so the form comes from a shallow gradient
+  // rather than from darkness.
+  //
+  // The numbers are not comparable to the dark ones and are not meant to be.
+  // Three applies irradiance without the legacy factor of PI, so an intensity
+  // here buys about a third of what it reads as, and the dark scene tuned its
+  // own values empirically against a near-black albedo. These were measured off
+  // the rendered canvas against the page colour.
+  keyIntensity: 1.55,
+  ambientIntensity: 1.85,
+  // A rim that only has to draw the edge, not glow. Any more and a pale sphere
+  // acquires a heavy ring and starts reading as a dish seen face-on.
+  atmosphereStrength: 0.28,
+  hazeStrength: 0.05,
+  cityHalo: 0.1,
+  nodeOpacity: 0.85,
+};
 
 interface Palette {
   readonly body: string;
@@ -161,6 +218,21 @@ export class Globe implements OnDestroy {
 
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly document = inject(DOCUMENT);
+  private readonly themeService = inject(ThemeService);
+
+  /** The library itself, kept so a theme change can reach its blending enums. */
+  private three: typeof THREE | null = null;
+
+  /**
+   * One entry per material that owns a colour, registered by whichever build
+   * method creates it.
+   *
+   * The alternative is a field for every material and one long applyTheme that
+   * has to be kept in step with five build methods. Here each material states
+   * its own theme behaviour next to its construction, which is the only place
+   * that knows what the material is for.
+   */
+  private readonly themed: ((palette: Palette, light: boolean, lib: typeof THREE) => void)[] = [];
 
   private renderer: THREE.WebGLRenderer | null = null;
   private scene: THREE.Scene | null = null;
@@ -205,6 +277,15 @@ export class Globe implements OnDestroy {
     // afterNextRender never runs during prerender, so Node never reaches any of
     // the DOM or WebGL below.
     afterNextRender(() => void this.start());
+
+    // A canvas cannot use var(), so a theme change has to be pushed into the
+    // materials by hand. The tokens are re-read on every change rather than
+    // cached per theme, so _tokens.scss stays the one place a globe colour is
+    // written. No-ops until the scene exists, and never runs on the server.
+    effect(() => {
+      this.themeService.theme();
+      this.applyTheme();
+    });
   }
 
   ngOnDestroy(): void {
@@ -247,6 +328,7 @@ export class Globe implements OnDestroy {
     renderer.setPixelRatio(Math.min(2, this.document.defaultView?.devicePixelRatio ?? 1));
     renderer.setClearAlpha(0);
     this.renderer = renderer;
+    this.three = three;
 
     this.readPalette();
 
@@ -276,6 +358,11 @@ export class Globe implements OnDestroy {
     this.buildShells(three);
     this.buildLand(three);
     this.buildNetwork(three);
+
+    // The build above uses the dark tuning throughout. If the reader arrived on
+    // the light palette this is what corrects it, in one pass, before the first
+    // frame is drawn.
+    this.applyTheme();
 
     this.resize();
     this.watchResize();
@@ -314,6 +401,38 @@ export class Globe implements OnDestroy {
     };
   }
 
+  /**
+   * Push the current theme through every material that owns a colour.
+   *
+   * Cheap enough to run on every change: it is a few dozen colour writes and no
+   * geometry, no shader recompile and no reallocation. Blending and
+   * premultipliedAlpha are renderer state rather than program state, so none of
+   * this needs needsUpdate — flipping them does not cost a recompile.
+   *
+   * Safe to call before the scene exists and on the server, where it returns at
+   * the first line.
+   */
+  private applyTheme(): void {
+    const three = this.three;
+    if (!three || this.destroyed) {
+      return;
+    }
+
+    this.readPalette();
+    const light = this.themeService.theme() === 'light';
+
+    for (const apply of this.themed) {
+      apply(this.palette, light, three);
+    }
+
+    // The loop is stopped whenever the hero is off screen or the tab is hidden.
+    // Draw one frame so the canvas is already correct if it is looked at again
+    // before anything resumes it.
+    if (!this.running && this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Scene
   // ---------------------------------------------------------------------------
@@ -330,12 +449,26 @@ export class Globe implements OnDestroy {
    * put while the globe turns underneath it.
    */
   private buildLighting(three: typeof THREE): void {
-    const key = new three.DirectionalLight(new three.Color(this.palette.light), 2.6);
+    const key = new three.DirectionalLight(
+      new three.Color(this.palette.light),
+      DARK_TUNING.keyIntensity,
+    );
     key.position.set(-2.2, -1.4, 2.6);
     this.scene?.add(key);
 
-    const fill = new three.AmbientLight(new three.Color(this.palette.ambient), 0.55);
+    const fill = new three.AmbientLight(
+      new three.Color(this.palette.ambient),
+      DARK_TUNING.ambientIntensity,
+    );
     this.scene?.add(fill);
+
+    this.themed.push((palette, light) => {
+      const tuning = light ? LIGHT_TUNING : DARK_TUNING;
+      key.color.set(palette.light);
+      fill.color.set(palette.ambient);
+      key.intensity = tuning.keyIntensity;
+      fill.intensity = tuning.ambientIntensity;
+    });
   }
 
   /** The solid planet. Opaque and depth-writing — this is what makes it a globe. */
@@ -350,6 +483,8 @@ export class Globe implements OnDestroy {
 
     this.root?.add(new three.Mesh(geometry, material));
     this.disposables.push(geometry, material);
+
+    this.themed.push((palette) => material.color.set(palette.body));
   }
 
   /**
@@ -360,21 +495,31 @@ export class Globe implements OnDestroy {
    * for two draw calls and no render targets.
    */
   private buildShells(three: typeof THREE): void {
-    const shells: [number, string, number, number][] = [
-      // radius, colour, falloff power (lower is wider), intensity
-      [ATMOSPHERE_RADIUS, this.palette.atmosphere, 2.1, 1.35],
-      [HAZE_RADIUS, this.palette.haze, 1.5, 0.32],
+    const shells: {
+      radius: number;
+      key: 'atmosphere' | 'haze';
+      // Falloff power: lower is wider.
+      power: number;
+      strength: (tuning: Tuning) => number;
+    }[] = [
+      {
+        radius: ATMOSPHERE_RADIUS,
+        key: 'atmosphere',
+        power: 2.1,
+        strength: (tuning) => tuning.atmosphereStrength,
+      },
+      { radius: HAZE_RADIUS, key: 'haze', power: 1.5, strength: (tuning) => tuning.hazeStrength },
     ];
 
-    for (const [radius, color, power, strength] of shells) {
-      const geometry = new three.SphereGeometry(radius, 64, 48);
+    for (const shell of shells) {
+      const geometry = new three.SphereGeometry(shell.radius, 64, 48);
       const material = new three.ShaderMaterial({
         vertexShader: SHELL_VERTEX,
         fragmentShader: SHELL_FRAGMENT,
         uniforms: {
-          uColor: { value: new three.Color(color) },
-          uPower: { value: power },
-          uStrength: { value: strength },
+          uColor: { value: new three.Color(this.palette[shell.key]) },
+          uPower: { value: shell.power },
+          uStrength: { value: shell.strength(DARK_TUNING) },
         },
         side: three.BackSide,
         blending: three.AdditiveBlending,
@@ -386,6 +531,19 @@ export class Globe implements OnDestroy {
 
       this.root?.add(new three.Mesh(geometry, material));
       this.disposables.push(geometry, material);
+
+      this.themed.push((palette, light, lib) => {
+        material.uniforms['uColor'].value.set(palette[shell.key]);
+        material.uniforms['uStrength'].value = shell.strength(light ? LIGHT_TUNING : DARK_TUNING);
+        // On ivory an additive rim can only climb toward white, which erases it.
+        // Normal blending lets the same gold sit *over* the page and darken it,
+        // so the lit horizon survives. premultipliedAlpha is what makes that
+        // correct rather than merely different: the shader already emits colour
+        // scaled by intensity with intensity as alpha, so without it the colour
+        // would be multiplied by alpha a second time and the rim would go muddy.
+        material.blending = light ? lib.NormalBlending : lib.AdditiveBlending;
+        material.premultipliedAlpha = light;
+      });
     }
   }
 
@@ -428,6 +586,11 @@ export class Globe implements OnDestroy {
     this.root?.add(new three.Points(dimGeometry, dimMaterial));
     this.disposables.push(dimGeometry, dimMaterial);
 
+    // Normal blending already, in both themes: the continents are meant to read
+    // as land, and the token flips them from warm gold on a dark sphere to deep
+    // gold on an ivory one.
+    this.themed.push((palette) => dimMaterial.color.set(palette.land));
+
     // The city lights, drawn twice off one geometry: once at true size and full
     // opacity for the point itself, once at triple size and very low opacity for
     // the halo around it. Two cheap additive passes stand in for a bloom pass.
@@ -435,25 +598,34 @@ export class Globe implements OnDestroy {
     cityGeometry.setAttribute('position', new three.BufferAttribute(new Float32Array(bright), 3));
     this.disposables.push(cityGeometry);
 
-    const cityPasses: [number, number][] = [
-      [0.011, 1],
-      [0.033, 0.15],
+    const cityPasses: { size: number; opacity: (tuning: Tuning) => number }[] = [
+      { size: 0.011, opacity: () => 1 },
+      { size: 0.033, opacity: (tuning) => tuning.cityHalo },
     ];
 
-    for (const [size, opacity] of cityPasses) {
+    for (const pass of cityPasses) {
       const material = new three.PointsMaterial({
         color: new three.Color(this.palette.city),
-        size,
+        size: pass.size,
         sizeAttenuation: true,
         map: sprite,
         transparent: true,
-        opacity,
+        opacity: pass.opacity(DARK_TUNING),
         blending: three.AdditiveBlending,
         depthWrite: false,
       });
 
       this.root?.add(new three.Points(cityGeometry, material));
       this.disposables.push(material);
+
+      this.themed.push((palette, light, lib) => {
+        material.color.set(palette.city);
+        material.opacity = pass.opacity(light ? LIGHT_TUNING : DARK_TUNING);
+        // Lights on a dark planet add; marks on a pale one subtract. Same two
+        // passes either way — the halo simply becomes a soft shadow around the
+        // point rather than a bloom off it.
+        material.blending = light ? lib.NormalBlending : lib.AdditiveBlending;
+      });
     }
   }
 
@@ -517,6 +689,11 @@ export class Globe implements OnDestroy {
       // Spread the phases so the network never pulses in unison.
       this.arcs.push({ material, phase: index / ARC_ROUTES.length });
 
+      this.themed.push((palette, light, lib) => {
+        material.color.set(palette.arc);
+        material.blending = light ? lib.NormalBlending : lib.AdditiveBlending;
+      });
+
       const pulseMaterial = new three.SpriteMaterial({
         color: new three.Color(this.palette.node),
         map: sprite,
@@ -533,7 +710,17 @@ export class Globe implements OnDestroy {
 
       this.root?.add(pulse);
       this.disposables.push(pulseMaterial);
-      this.pulses.push({ sprite: pulse, material: pulseMaterial, path, phase: index / ARC_ROUTES.length });
+      this.pulses.push({
+        sprite: pulse,
+        material: pulseMaterial,
+        path,
+        phase: index / ARC_ROUTES.length,
+      });
+
+      this.themed.push((palette, light, lib) => {
+        pulseMaterial.color.set(palette.node);
+        pulseMaterial.blending = light ? lib.NormalBlending : lib.AdditiveBlending;
+      });
     });
 
     // Every endpoint as one additive point cloud — one draw call for all of them.
@@ -551,13 +738,19 @@ export class Globe implements OnDestroy {
       sizeAttenuation: true,
       map: sprite,
       transparent: true,
-      opacity: 0.9,
+      opacity: DARK_TUNING.nodeOpacity,
       blending: three.AdditiveBlending,
       depthWrite: false,
     });
 
     this.root?.add(new three.Points(geometry, material));
     this.disposables.push(geometry, material);
+
+    this.themed.push((palette, light, lib) => {
+      material.color.set(palette.node);
+      material.opacity = (light ? LIGHT_TUNING : DARK_TUNING).nodeOpacity;
+      material.blending = light ? lib.NormalBlending : lib.AdditiveBlending;
+    });
   }
 
   /**
@@ -769,11 +962,15 @@ export class Globe implements OnDestroy {
     this.disposables.length = 0;
     this.arcs.length = 0;
     this.pulses.length = 0;
+    // These close over disposed materials; a late theme change must not reach
+    // them.
+    this.themed.length = 0;
 
     // Releases the GPU context. Without it a few navigations exhaust the
     // browser's context limit and every later globe fails to create one.
     this.renderer?.dispose();
     this.dotTexture = null;
+    this.three = null;
     this.renderer = null;
     this.scene = null;
     this.camera = null;

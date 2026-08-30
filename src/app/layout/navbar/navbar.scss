@@ -35,10 +35,11 @@
 
   display: flex;
   align-items: center;
-  // Eight links plus the CTA do not fit at 1024px on the roomier spacing: the
-  // bar needs 997.8px of the 921.6px available. The tighter gaps below bring it
-  // to 856.7px, and the full spacing returns at xl where there is room for it.
-  gap: var(--bwg-sp-5);
+  // Eight links, a theme toggle and the CTA. At 1024px only 921.6px is available
+  // and the roomier spacing needs 997.8px, so the gaps tighten below xl and the
+  // full spacing returns where there is room for it. See the width budget in the
+  // report: 890.7px of 921.6px at the tightest, with the toggle counted.
+  gap: var(--bwg-sp-4);
   height: 100%;
 
   @include up('xl') {
@@ -85,7 +86,7 @@
     // Never wrap: the bar has a fixed height, so a wrapped row would overflow it
     // rather than growing it.
     flex-wrap: nowrap;
-    gap: var(--bwg-sp-3);
+    gap: var(--bwg-sp-2);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -123,6 +124,50 @@
 // =============================================================================
 // CTA
 // =============================================================================
+// Compact, square, and the same height as the CTA beside it so the bar keeps one
+// baseline. Hidden below lg, where the mobile panel carries it instead.
+.nav__theme {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r);
+  color: var(--bwg-gold);
+  transition:
+    color var(--bwg-dur-base) var(--bwg-ease-out),
+    border-color var(--bwg-dur-base) var(--bwg-ease-out),
+    background var(--bwg-dur-base) var(--bwg-ease-out);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--bwg-gold);
+    color: var(--bwg-gold-bright);
+    background: rgb(var(--bwg-gold-rgb) / 8%);
+  }
+
+  @include up('lg') {
+    display: inline-flex;
+  }
+}
+
+// In the panel it can afford a label, so it gets one.
+.nav-panel__theme {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bwg-sp-3);
+  margin-block-start: var(--bwg-sp-6);
+  padding: var(--bwg-sp-3) var(--bwg-sp-5);
+  border: 1px solid var(--bwg-rule);
+  border-radius: var(--bwg-r);
+  color: var(--bwg-gold);
+  font-size: var(--bwg-fs-xs);
+  font-weight: var(--bwg-fw-ui-medium);
+  letter-spacing: var(--bwg-tracking-eyebrow);
+}
+
 .nav__cta {
   display: none;
   align-items: center;

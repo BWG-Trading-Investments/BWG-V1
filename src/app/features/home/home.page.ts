@@ -1,8 +1,16 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, afterNextRender, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  afterNextRender,
+  inject,
+} from '@angular/core';
 
 import { SECTION_IDS } from '../../core/navigation';
 import { ScrollSpyService } from '../../core/scroll-spy.service';
 import { About } from './sections/about/about';
+import { Board } from './sections/board/board';
+import { CeoSpotlight } from './sections/ceo-spotlight/ceo-spotlight';
 import { Contact } from './sections/contact/contact';
 import { Ecosystem } from './sections/ecosystem/ecosystem';
 import { Hero } from './sections/hero/hero';
@@ -22,7 +30,19 @@ import { Statement } from './sections/statement/statement';
  */
 @Component({
   selector: 'bwg-home-page',
-  imports: [Hero, Statement, About, Ecosystem, Projects, Leaders, Partnerships, Invest, Contact],
+  imports: [
+    Hero,
+    Statement,
+    About,
+    Ecosystem,
+    Projects,
+    Board,
+    CeoSpotlight,
+    Leaders,
+    Partnerships,
+    Invest,
+    Contact,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',

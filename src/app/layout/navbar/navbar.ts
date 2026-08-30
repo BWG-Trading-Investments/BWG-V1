@@ -19,6 +19,7 @@ import { filter } from 'rxjs';
 
 import { NAV_CTA, NAV_ITEMS, type NavItem, ownsSection } from '../../core/navigation';
 import { ScrollSpyService } from '../../core/scroll-spy.service';
+import { ThemeService } from '../../core/theme.service';
 
 /** Applied to <body> while the mobile panel is open. Styled in base/_a11y.scss. */
 const SCROLL_LOCK_CLASS = 'bwg-scroll-locked';
@@ -45,6 +46,7 @@ const MAX_TILT_DEG = 16;
 })
 export class Navbar {
   private readonly spy = inject(ScrollSpyService);
+  private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -55,6 +57,13 @@ export class Navbar {
   protected readonly scrolled = this.spy.scrolled;
   protected readonly progress = this.spy.progress;
   protected readonly activeId = this.spy.activeId;
+
+  /** The active palette, for the toggle’s label and icon. */
+  protected readonly theme = this.themeService.theme;
+
+  protected toggleTheme(): void {
+    this.themeService.toggle();
+  }
 
   protected readonly menuOpen = signal(false);
 
