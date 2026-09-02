@@ -227,11 +227,11 @@ export const LEADERS: readonly Leader[] = [
   },
 
   {
-    slug: 'eng-salah-hashaad',
-    name: 'Eng. Salah Hashaad',
+    slug: 'eng-saleh-hashaad',
+    name: 'Eng. Saleh Hashaad',
     title: 'Chief Technology Officer',
     org: 'BWG Tech',
-    photo: '/assets/images/leader-salah.webp',
+    photo: '/assets/images/leader-saleh.webp',
     width: 469,
     height: 980,
     cardIcon: 'chip',
@@ -241,7 +241,7 @@ export const LEADERS: readonly Leader[] = [
     intro:
       "Leading BWG Tech's technology vision, technology strategy, and digital transformation.",
     bio: [
-      'Eng. Salah Hashaad leads the development of innovative technology solutions and scalable, high-performing digital platforms, keeping business and technology aligned behind one long-term technology strategy.',
+      'Eng. Saleh Hashaad leads the development of innovative technology solutions and scalable, high-performing digital platforms, keeping business and technology aligned behind one long-term technology strategy.',
       'His approach combines strong leadership and problem-solving with a focus on innovation, security, agility, and excellence.',
     ],
     blocks: [
